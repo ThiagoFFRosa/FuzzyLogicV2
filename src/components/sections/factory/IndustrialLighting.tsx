@@ -3,7 +3,6 @@ import { useFrame, useThree } from '@react-three/fiber';
 import type { AmbientScheduler } from '../../../lib/ambientEvents';
 import type { FactoryQuality } from '../../../lib/factoryQuality';
 import { shadowMapSize } from '../../../lib/factoryGraphics';
-import type { ShadowQuality } from '../../../lib/factoryGraphics';
 import { AdditiveBlending, Color, Object3D, Quaternion, Vector3 } from 'three';
 import type {
   MeshBasicMaterial,
@@ -55,8 +54,6 @@ function IndustrialLightFixture({
   targetOffset = 0,
   shadowSize = 512,
   castShadows = true,
-  illuminate = true,
-  tightShadows = false,
   z = 2.05,
 }: {
   x: number;
@@ -66,8 +63,6 @@ function IndustrialLightFixture({
   targetOffset?: number;
   shadowSize?: number;
   castShadows?: boolean;
-  illuminate?: boolean;
-  tightShadows?: boolean;
   z?: number;
 }) {
   const tube = useRef<MeshStandardMaterial>(null);
@@ -101,7 +96,7 @@ function IndustrialLightFixture({
       shadow.map = null;
     }
     shadow.needsUpdate = castShadows;
-  }, [castShadows, shadowSize, tightShadows, illuminate]);
+  }, [castShadows, shadowSize]);
   useFrame(() => {
     if (!ambient || !tube.current) return;
     const power = 1 - ambient.strength('lamp');
@@ -144,29 +139,25 @@ function IndustrialLightFixture({
       ))}
       {enabled && (
         <>
-          {illuminate && (
-            <>
-              <primitive object={target} />
-              <spotLight
-                name={`fluorescent-${state}`}
-                ref={light}
-                target={target}
-                position={origin}
-                color={LAMP_COLOR}
-                intensity={intensity}
-                distance={14}
-                angle={BEAM_ANGLE}
-                penumbra={0.78}
-                decay={2}
-                castShadow={castShadows}
-                shadow-mapSize={[shadowSize, shadowSize]}
-                shadow-camera-near={tightShadows ? 1.25 : 0.5}
-                shadow-normalBias={tightShadows ? 0.025 : 0.035}
-                shadow-bias={tightShadows ? -0.00012 : -0.0002}
-                shadow-radius={shadowSize === 512 ? 1.6 : 2.6}
-              />
-            </>
-          )}
+          <primitive object={target} />
+          <spotLight
+            name={`fluorescent-${state}`}
+            ref={light}
+            target={target}
+            position={origin}
+            color={LAMP_COLOR}
+            intensity={intensity}
+            distance={14}
+            angle={BEAM_ANGLE}
+            penumbra={0.78}
+            decay={2}
+            castShadow={castShadows}
+            shadow-mapSize={[shadowSize, shadowSize]}
+            shadow-camera-near={0.5}
+            shadow-normalBias={0.035}
+            shadow-bias={-0.0002}
+            shadow-radius={shadowSize === 512 ? 1.6 : 2.6}
+          />
           <mesh position={center} quaternion={rotation} renderOrder={1}>
             <coneGeometry args={[height * Math.tan(BEAM_ANGLE), height, 32, 1, true]} />
             <shaderMaterial
@@ -204,7 +195,6 @@ export function IndustrialLighting({
   supervisorX,
   supervisorZ,
   quality,
-  shadows,
 }: {
   compact: boolean;
   ambient: AmbientScheduler;
@@ -213,11 +203,10 @@ export function IndustrialLighting({
   supervisorX: number;
   supervisorZ: number;
   quality: FactoryQuality;
-  shadows: ShadowQuality;
 }) {
   const maxMap = useThree((state) => state.gl.capabilities.maxTextureSize);
-  const mainShadow = Math.min(maxMap, shadowMapSize(shadows, 'main', compact));
-  const outerShadow = Math.min(maxMap, shadowMapSize(shadows, 'outer', compact));
+  const mainShadow = Math.min(maxMap, shadowMapSize('main', compact));
+  const outerShadow = Math.min(maxMap, shadowMapSize('outer', compact));
   const low = quality === 'low';
   const distant = useRef<PointLight>(null);
   const reflection = useRef<MeshBasicMaterial>(null);
@@ -257,8 +246,6 @@ export function IndustrialLighting({
         targetOffset={0.7}
         castShadows={!!outerShadow}
         shadowSize={outerShadow || 512}
-        tightShadows={shadows === 'ultra'}
-        illuminate={!low}
       />
       <IndustrialLightFixture
         x={-3}
@@ -268,7 +255,6 @@ export function IndustrialLighting({
         targetOffset={0.95}
         castShadows={!!mainShadow}
         shadowSize={mainShadow || 512}
-        tightShadows={shadows === 'ultra'}
       />
       <IndustrialLightFixture
         x={6}
@@ -277,7 +263,6 @@ export function IndustrialLighting({
         targetOffset={-1.25}
         castShadows={!!mainShadow}
         shadowSize={mainShadow || 512}
-        tightShadows={shadows === 'ultra'}
       />
       <IndustrialLightFixture
         x={15}
@@ -286,8 +271,6 @@ export function IndustrialLighting({
         targetOffset={-1.2}
         castShadows={!!outerShadow}
         shadowSize={outerShadow || 512}
-        tightShadows={shadows === 'ultra'}
-        illuminate={!low}
       />
       <IndustrialLightFixture x={18} z={-4.6} state="off" />
       <pointLight

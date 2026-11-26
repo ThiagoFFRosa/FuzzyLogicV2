@@ -3,20 +3,12 @@ import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import type { Locale } from '../../../lib/behavior';
 import {
-  ANTIALIAS_MODES,
   FRAME_LIMITS,
   POST_MODES,
   RENDER_SCALES,
-  SHADOW_LEVELS,
-  TEXTURE_LEVELS,
   graphicsSettings,
 } from '../../../lib/factoryGraphics';
-import type {
-  GraphicsOverrides,
-  GraphicsPreset,
-  GraphicsSettings,
-  RenderReport,
-} from '../../../lib/factoryGraphics';
+import type { GraphicsOverrides, GraphicsPreset, RenderReport } from '../../../lib/factoryGraphics';
 
 const copy = {
   pt: {
@@ -32,13 +24,11 @@ const copy = {
     diagnostics: 'Exibir diagnóstico',
     defaults: 'Restaurar padrões',
     preset: 'Preset',
-    legacy: 'orçamento do preset',
+    adaptive: 'Automática',
     unlimited: 'Sem limite',
     off: 'Desligado',
     on: 'Ligado',
     standard: 'Padrão',
-    high: 'Alta',
-    native: 'MSAA do navegador',
     waiting: 'Aguardando o renderer 3D.',
     canvas: 'Área CSS',
     physical: 'Área física estimada',
@@ -73,13 +63,11 @@ const copy = {
     diagnostics: 'Show diagnostics',
     defaults: 'Restore defaults',
     preset: 'Preset',
-    legacy: 'preset budget',
+    adaptive: 'Automatic',
     unlimited: 'Unlimited',
     off: 'Off',
     on: 'On',
     standard: 'Standard',
-    high: 'High',
-    native: 'Browser MSAA',
     waiting: 'Waiting for the 3D renderer.',
     canvas: 'CSS area',
     physical: 'Estimated physical area',
@@ -159,22 +147,15 @@ export function FactoryGraphicsPanel({
   report: RenderReport | null;
   diagnostics: boolean;
   setDiagnostics: (value: boolean) => void;
-  onEdit: <Key extends keyof GraphicsSettings>(
-    field: Key,
-    value: GraphicsSettings[Key] | undefined,
-  ) => void;
+  onEdit: <Key extends keyof GraphicsOverrides>(field: Key, value: GraphicsOverrides[Key]) => void;
   onReset: () => void;
   onClose: () => void;
 }) {
   const text = copy[locale];
   const close = useRef<HTMLButtonElement>(null);
   useEffect(() => close.current?.focus({ preventScroll: true }), []);
-  const tier =
-    preset === 'ultra' ? 'high' : preset === 'auto' ? (report?.tier ?? 'medium') : preset;
-  const defaults = graphicsSettings(preset, tier, {});
+  const defaults = graphicsSettings(preset, {});
   const optionLabel = (value: string) => (value === 'off' ? text.off : value.toUpperCase());
-  const showAA = (value: GraphicsSettings['aa']) =>
-    value === 'msaa' ? text.native : optionLabel(value);
   const enabled = (value: boolean) => (value ? text.on : text.off);
   const formatFps = (value: number) => (value ? `${value} FPS` : text.unlimited);
   const fromPreset = (value: string) => `${text.preset} · ${value}`;
@@ -216,33 +197,9 @@ export function FactoryGraphicsPanel({
           label={text.scale}
           selected={overrides.scale}
           values={RENDER_SCALES}
-          defaultLabel={fromPreset(defaults.scale ? `${defaults.scale}%` : text.legacy)}
+          defaultLabel={fromPreset(defaults.scale === null ? text.adaptive : `${defaults.scale}%`)}
           format={(value) => `${value}%`}
           change={(value) => onEdit('scale', value)}
-        />
-        <Field
-          label={text.aa}
-          selected={overrides.aa}
-          values={ANTIALIAS_MODES}
-          defaultLabel={fromPreset(showAA(defaults.aa))}
-          format={showAA}
-          change={(value) => onEdit('aa', value)}
-        />
-        <Field
-          label={text.shadows}
-          selected={overrides.shadows}
-          values={SHADOW_LEVELS}
-          defaultLabel={fromPreset(optionLabel(defaults.shadows))}
-          format={optionLabel}
-          change={(value) => onEdit('shadows', value)}
-        />
-        <Field
-          label={text.textures}
-          selected={overrides.textures}
-          values={TEXTURE_LEVELS}
-          defaultLabel={fromPreset(text[defaults.textures])}
-          format={(value) => text[value]}
-          change={(value) => onEdit('textures', value)}
         />
         <Field
           label={text.post}
@@ -259,14 +216,6 @@ export function FactoryGraphicsPanel({
           defaultLabel={fromPreset(formatFps(defaults.fps))}
           format={formatFps}
           change={(value) => onEdit('fps', value)}
-        />
-        <Field
-          label={text.dynamic}
-          selected={overrides.dynamic}
-          values={[true, false]}
-          defaultLabel={fromPreset(enabled(defaults.dynamic))}
-          format={enabled}
-          change={(value) => onEdit('dynamic', value)}
         />
       </div>
       <p className="factory-graphics-buffer">
@@ -306,6 +255,10 @@ export function FactoryGraphicsPanel({
           <dd>
             {actualAA} · max {report.maxSamples}×
           </dd>
+          <dt>{text.shadows}</dt>
+          <dd>HIGH</dd>
+          <dt>{text.textures}</dt>
+          <dd>{text.standard}</dd>
           <dt>Anisotropy</dt>
           <dd>
             {report.anisotropy}× / {report.maxAnisotropy}×

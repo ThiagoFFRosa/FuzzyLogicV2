@@ -13,7 +13,7 @@ import { browserPreference, persist } from '../../lib/behavior';
 import { QUALITY_STORAGE_KEY, parseFactoryQuality } from '../../lib/factoryQuality';
 import type { QualityPreference } from '../../lib/factoryQuality';
 import { GRAPHICS_STORAGE_KEY, parseGraphicsProfiles } from '../../lib/factoryGraphics';
-import type { GraphicsOverrides, GraphicsSettings, RenderReport } from '../../lib/factoryGraphics';
+import type { GraphicsOverrides, RenderReport } from '../../lib/factoryGraphics';
 import { FactoryGraphicsPanel, renderLimitations } from './factory/FactoryGraphicsPanel';
 import { FacilityBootScreen } from './factory/FacilityBootScreen';
 import { useFacilityBoot } from './factory/useFacilityBoot';
@@ -49,9 +49,9 @@ export function HeroSection() {
     setDiagnostics(false);
     graphicsTrigger.current?.focus({ preventScroll: true });
   };
-  function changeGraphics<Key extends keyof GraphicsSettings>(
+  function changeGraphics<Key extends keyof GraphicsOverrides>(
     field: Key,
-    value: GraphicsSettings[Key] | undefined,
+    value: GraphicsOverrides[Key],
   ) {
     if (quality === 'off') return;
     const next = { ...overrides };

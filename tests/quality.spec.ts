@@ -60,7 +60,7 @@ test('quality changes live with inspection open, persists, and provides an expli
   await quality.selectOption('low');
   await expect(canvas).toHaveAttribute('data-quality', 'low');
   await expect.poll(async () => (await rendererState(page)).width).toBeLessThan(before.width);
-  expect((await rendererState(page)).shadows).toBe(false);
+  expect((await rendererState(page)).shadows).toBe(true);
   for (const level of ['high', 'medium', 'high']) {
     await quality.selectOption(level);
     await expect(canvas).toHaveAttribute('data-quality', level);

@@ -147,7 +147,9 @@ test('the production 3D bundle and its delayed modules load and keep inspection 
     .poll(() =>
       scene.locator('canvas').evaluate((element: HTMLCanvasElement) => {
         const context = element.getContext('webgl2');
-        const expected = Math.floor(element.getBoundingClientRect().width * devicePixelRatio);
+        const expected = Math.floor(
+          element.getBoundingClientRect().width * devicePixelRatio * 1.25,
+        );
         return Math.abs((context?.drawingBufferWidth ?? 0) - expected);
       }),
     )

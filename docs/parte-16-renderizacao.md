@@ -4,22 +4,26 @@
 
 Escolha **ULTRA** no seletor de qualidade da fábrica. Abra **Ajustes gráficos** pelo ícone ao lado do seletor para ler o buffer efetivo. A opção **Exibir diagnóstico** acrescenta medidas da cena e do renderer. O painel fica fechado por padrão.
 
-O ULTRA usa o nível alto de cena, escala física de 100%, MSAA do navegador, sombras ULTRA, filtragem anisotrópica alta, FPS sem limite e resolução dinâmica desligada. As configurações da câmera de produção permanecem em `src/lib/factoryCamera.ts`. A composição compacta continua usando seus próprios elementos e enquadramento.
+Após a validação em ultrawide, os quatro presets manuais usam a mesma configuração de AA, sombras e texturas. O buffer multiplica a dimensão CSS do canvas pelo DPR e pela escala escolhida. ULTRA combina nível alto de cena e supersampling de 125%. A câmera de produção fica em `src/lib/factoryCamera.ts`.
 
 | Controle | Comportamento |
 | --- | --- |
-| Qualidade | AUTO mantém a adaptação dos níveis existentes. LOW, MEDIUM e HIGH preservam os níveis e orçamentos anteriores. ULTRA usa resolução nativa por padrão. 2D continua disponível. |
-| Escala | 50, 60, 75, 85, 100, 125, 150, 175 ou 200%. O valor explícito multiplica a dimensão CSS pelo DPR e pela escala uma vez. Acima de 100% é supersampling. |
-| Antialiasing | OFF, FXAA ou MSAA do navegador. O renderer informa a opção efetiva e o MSAA que o contexto realmente concedeu. Se o MSAA estiver indisponível, aplica FXAA e exibe o aviso. |
-| Sombras | OFF, LOW, MEDIUM, HIGH ou ULTRA, em separado do nível da cena. |
-| Texturas | Padrão até 4× de anisotropia. Alta até 16× ou o limite do dispositivo. Ambas usam os mapas originais. |
+| Qualidade | LOW 50%, MEDIUM 75%, HIGH 100%, ULTRA 125%. AUTO usa níveis adaptativos com orçamento de pixels. 2D está disponível no seletor. |
+| Escala | O painel aceita somente os quatro valores dos presets. Em AUTO, uma escala manual fixa o buffer e a seleção da qualidade dos elementos da cena continua adaptativa. |
+| Antialiasing | MSAA nativo sempre que concedido pelo contexto. FXAA é o fallback automático. O painel informa o método efetivo e a contagem de amostras. |
+| Sombras | HIGH em todos os presets 3D. Os spots principais usam mapas de 1024², inclusive em mobile. As sombras laterais e de manutenção pertencem à composição ampla. |
+| Texturas | Padrão, com anisotropia de até 4× conforme o dispositivo. |
 | Pós-processamento | Bloom discreto opcional. As luzes, os brilhos dos shaders, a névoa e a vinheta do projeto continuam disponíveis com o ajuste desligado. |
 | Limite de FPS | Sem limite ou 30, 60, 120, 144 e 165. Um agendador por `requestAnimationFrame` limita os frames realmente enviados e usa deltas de tempo nas animações. O navegador e o dispositivo determinam o que pode ser atingido. |
-| Resolução dinâmica | Ativa por padrão em AUTO. Com escala explícita, usa fatores de 0,60, 0,85 e 1,0 por nível adaptativo. Quando desligada, a escala explícita permanece fixa. Em AUTO com escala do preset, fixa o orçamento inicial apropriado à composição. |
+| Resolução dinâmica | Ativa somente em AUTO com a escala automática. O diagnóstico indica se está em uso. |
 
-Os ajustes são salvos por preset em `fuzzs-render-settings-v1`. O seletor continua reconhecendo `fuzzs-quality` de versões anteriores. Ao editar um ajuste, o painel indica **CUSTOM**. **Restaurar padrões** restaura o preset ativo. As alterações preservam a inspeção. Entrar ou sair de MSAA recria o contexto WebGL porque a opção nativa é imutável depois da criação. Os outros ajustes são aplicados ao Canvas vigente.
+O seletor usa `fuzzs-quality`. A escala manual, o Bloom e o limite de FPS são salvos por preset em `fuzzs-render-settings-v1`. A leitura de preferências anteriores descarta as opções removidas e as escalas fora dos quatro valores atuais. **Restaurar padrões** restaura o preset ativo. Os ajustes são aplicados ao canvas vigente e preservam a inspeção.
 
-## O que afetava a nitidez
+Em Chromium com SwiftShader, uma viewport emulada de 3440 × 1440 e DPR 1 produziu 1720 × 579 em LOW, 2580 × 869 em MEDIUM, 3440 × 1159 em HIGH e 4300 × 1448 em ULTRA. Os quatro presets usaram MSAA 4×. Em mobile emulado a 390 × 844 com DPR 2, LOW produziu 390 × 320 e HIGH 780 × 641. Ambos usaram MSAA 4× e mapas principais de 1024².
+
+## Referência histórica da Parte 16
+
+Os valores e as capturas abaixo registram a implementação original da Parte 16.
 
 - O renderer WebGL2 anterior usava `antialias: false`. Nenhum FXAA, SMAA, MSAA ou compositor de tela estava ativo. Em 1920 × 1080 com DPR 1, a cena já ocupava o buffer nativo e ainda apresentava serrilhamento.
 - HIGH limitava o DPR a 1,5 e o canvas a aproximadamente 2,5 milhões de pixels. A composição compacta tinha teto de 720 mil pixels. O teto de DPR foi a restrição efetiva na amostra mobile com DPR 2. O teto de pixels foi a restrição efetiva no ultrawide.
@@ -53,4 +57,6 @@ Chromium headless com **ANGLE/SwiftShader**. Os tamanhos abaixo são viewports e
 - Recorte ultrawide em 100% [OFF](render-reference/part-16/antialias/off.png) · [FXAA](render-reference/part-16/antialias/fxaa.png) · [MSAA](render-reference/part-16/antialias/msaa.png)
 - Dados brutos [antes](render-reference/part-16/before/measurements.json) · [depois](render-reference/part-16/after/measurements.json) · [AA](render-reference/part-16/antialias/measurements.json)
 
-Para reproduzir, rode `node scripts/audit-render-quality.mjs after` e `node scripts/audit-render-quality.mjs antialias` com o dev server local. Para repetir a linha de base, execute o script atual com o argumento `before` e aponte `FUZZS_PREVIEW` para um servidor rodando o checkpoint `45e5e4b`. A validação automatizada usa DPR 1,25 e 1,5 via emulação, resize com cena ativa e limite de dimensões WebGL simulado. Hardware físico, ultrawide real, Safari/iOS e cadências acima de 60 Hz seguem pendentes.
+Para reproduzir as capturas acima, use o script e a aplicação do checkpoint `7aa3f42`. A linha de base usou `45e5e4b`.
+
+Para validar os presets atuais, rode `npm run dev` e `npx playwright test tests/graphics.spec.ts`. A suíte cobre DPR 1,25 e 1,5 emulados, resize, fallback de MSAA e limite de dimensões WebGL simulado. Safari/iOS e cadências acima de 60 Hz seguem pendentes.

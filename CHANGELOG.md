@@ -1,5 +1,12 @@
 # Changelog do FuzzyLogic V2
 
+## 2026-11-26 — Patch de presets gráficos
+
+- Após validação em monitor ultrawide, fixou a escala física dos presets manuais em LOW 50%, MEDIUM 75%, HIGH 100% e ULTRA 125%. AUTO mantém a adaptação por desempenho, com orçamento de pixels, e o modo 2D permanece disponível.
+- Todos os presets 3D solicitam MSAA nativo, com fallback automático para FXAA. As sombras usam HIGH, com mapas principais de 1024², e as texturas usam filtragem padrão de até 4× de anisotropia.
+- O painel mantém escala, Bloom, limite de FPS e diagnóstico. As preferências guardam o preset e os ajustes válidos por preset. Campos descontinuados e escalas fora da nova lista são descartados ao carregar as preferências.
+- Passaram build, lint, 32 testes unitários, 14 cenários Chromium de gráficos, qualidade, mobile e inicialização, e 5 testes de distribuição. Em ultrawide emulado com DPR 1, o ULTRA produziu 4300 × 1448 com MSAA 4×. No mobile emulado com DPR 2, LOW e HIGH preservaram MSAA 4× e os dois mapas principais de 1024².
+
 ## 2026-11-26 — Parte 18 · Props e containers retroindustriais
 
 - Reestruturou os cinco containers como gavetas de arquivo e expedição, estojo de instrumentos, caixote de madeira e módulo de amostras. Nome e número são os únicos textos das etiquetas. O painel HTML concentra as informações detalhadas e abre a partir da gaveta ou da tampa.

@@ -25,11 +25,7 @@ import { useAmbientEvents } from './useAmbientEvents';
 import { SUPERVISOR_HEIGHT } from '../../../lib/supervisor';
 import { AdaptiveQuality, initialFactoryQuality } from '../../../lib/factoryQuality';
 import type { FactoryQuality, QualityPreference } from '../../../lib/factoryQuality';
-import {
-  graphicsSettings,
-  resolveResolution,
-  SHADOW_INTERVALS,
-} from '../../../lib/factoryGraphics';
+import { graphicsSettings, resolveResolution, SHADOW_INTERVAL } from '../../../lib/factoryGraphics';
 import type {
   GraphicsOverrides,
   GraphicsSettings,
@@ -123,19 +119,19 @@ function RenderBudget({
   const timing = useRef({ warmup: 0, shadow: 0, shadowFrames: 0 });
 
   useLayoutEffect(() => {
-    if (preference === 'auto' || settings.dynamic) onLevel(adaptive.level);
-  }, [adaptive, onLevel, preference, settings.dynamic]);
+    if (preference === 'auto') onLevel(adaptive.level);
+  }, [adaptive, onLevel, preference]);
   useLayoutEffect(() => {
     adaptive.resetWindow();
     timing.current.warmup = 1.25;
   }, [adaptive, preference, running, sceneryReady]);
   useLayoutEffect(() => {
     gl.shadowMap.autoUpdate = false;
-    gl.shadowMap.needsUpdate = settings.shadows !== 'off';
+    gl.shadowMap.needsUpdate = true;
     timing.current.shadow = 0;
     timing.current.shadowFrames = 0;
     invalidate();
-  }, [gl, level, settings.shadows, running, sceneryReady, inspectionId, invalidate]);
+  }, [gl, level, running, sceneryReady, inspectionId, invalidate]);
   useLayoutEffect(() => {
     const canvas = gl.domElement;
     const loseContext = (event: Event) => {
@@ -156,21 +152,14 @@ function RenderBudget({
   useFrame((_, delta) => {
     if (!running) return;
     const clock = timing.current;
-    const interval = SHADOW_INTERVALS[settings.shadows];
-    if (interval) {
-      clock.shadow += delta;
-      clock.shadowFrames++;
-      if (
-        settings.shadows === 'ultra' ||
-        (clock.shadow >= interval && clock.shadowFrames >= (settings.shadows === 'medium' ? 3 : 2))
-      ) {
-        gl.shadowMap.needsUpdate = true;
-        clock.shadow %= interval;
-        clock.shadowFrames = 0;
-      }
+    clock.shadow += delta;
+    clock.shadowFrames++;
+    if (clock.shadow >= SHADOW_INTERVAL && clock.shadowFrames >= 2) {
+      gl.shadowMap.needsUpdate = true;
+      clock.shadow %= SHADOW_INTERVAL;
+      clock.shadowFrames = 0;
     }
-    if ((preference !== 'auto' && !settings.dynamic) || !sceneryReady || inspectionId !== undefined)
-      return;
+    if (preference !== 'auto' || !sceneryReady || inspectionId !== undefined) return;
     if (clock.warmup > 0) {
       clock.warmup -= Math.min(delta, 0.5);
       return;
@@ -225,12 +214,11 @@ function FirstFactoryFrame({
 function Production(
   props: FactorySceneProps & {
     level: FactoryQuality;
-    settings: GraphicsSettings;
     onCameraReady: () => void;
     onSceneryReady: () => void;
   },
 ) {
-  const { travel, level, settings, onCameraReady, onSceneryReady } = props;
+  const { travel, level, onCameraReady, onSceneryReady } = props;
   const speed = useRef(props.paused || props.inspection ? 0 : 1),
     turretAttention = useRef<number | null>(null),
     scanUntil = useRef(0);
@@ -323,7 +311,6 @@ function Production(
             locale={props.locale}
             mobile={mobile}
             lowResolution={level !== 'high'}
-            shadows={settings.shadows}
           />
         )}
         <BackgroundInfrastructure
@@ -342,7 +329,6 @@ function Production(
         supervisorX={supervisorX}
         supervisorZ={supervisorZ}
         quality={level}
-        shadows={settings.shadows}
       />
       <Conveyor travel={travel} />
       <ConveyorDrive travel={travel} />
@@ -375,7 +361,6 @@ function Production(
           {...props}
           index={index}
           travel={travel}
-          contactShadow={level === 'low' && settings.shadows === 'off'}
           projectionRevision={projectionRevision}
         />
       ))}
@@ -411,34 +396,16 @@ export default function FactoryScene(props: FactorySceneProps) {
   const level =
     props.quality === 'auto' ? automatic : props.quality === 'ultra' ? 'high' : props.quality;
   const settings = useMemo(
-    () => graphicsSettings(props.quality, level, props.graphics),
-    [props.quality, level, props.graphics],
+    () => graphicsSettings(props.quality, props.graphics),
+    [props.quality, props.graphics],
   );
-  return (
-    <FactoryCanvas
-      key={settings.aa === 'msaa' ? 'msaa' : 'standard'}
-      {...props}
-      level={level}
-      settings={settings}
-      resolutionTier={
-        settings.dynamic
-          ? automatic
-          : props.quality === 'auto'
-            ? props.compact
-              ? 'low'
-              : 'medium'
-            : level
-      }
-      onLevel={setAutomatic}
-    />
-  );
+  return <FactoryCanvas {...props} level={level} settings={settings} onLevel={setAutomatic} />;
 }
 
 function FactoryCanvas(
   props: FactorySceneProps & {
     level: FactoryQuality;
     settings: GraphicsSettings;
-    resolutionTier: FactoryQuality;
     onLevel: (level: FactoryQuality) => void;
   },
 ) {
@@ -446,7 +413,7 @@ function FactoryCanvas(
   const [sceneryReady, setSceneryReady] = useState(false);
   const markCameraReady = useMemo(() => () => setCameraReady(true), []);
   const markSceneryReady = useMemo(() => () => setSceneryReady(true), []);
-  const { level, settings, resolutionTier } = props;
+  const { level, settings } = props;
   const running = props.active && !props.reduced;
   const [pixelRatio, setPixelRatio] = useState(
     () =>
@@ -456,7 +423,7 @@ function FactoryCanvas(
           height: window.innerHeight,
           device: window.devicePixelRatio || 1,
           compact: props.compact,
-          tier: resolutionTier,
+          tier: level,
         },
         settings,
         [Infinity, Infinity],
@@ -468,10 +435,10 @@ function FactoryCanvas(
       data-quality={props.quality === 'ultra' ? 'ultra' : level}
       data-scenery-ready={sceneryReady}
       camera={INITIAL_CAMERA}
-      shadows={settings.shadows === 'off' ? false : 'percentage'}
+      shadows="percentage"
       dpr={pixelRatio}
       frameloop={running && !settings.fps ? 'always' : 'demand'}
-      gl={{ antialias: settings.aa === 'msaa', powerPreference: 'high-performance' }}
+      gl={{ antialias: true, powerPreference: 'high-performance' }}
       fallback={<div className="factory-no-webgl" />}
       onCreated={({ gl }) => {
         gl.domElement.setAttribute('aria-hidden', 'true');
@@ -503,7 +470,6 @@ function FactoryCanvas(
       <FactoryRenderer
         settings={settings}
         tier={level}
-        resolutionTier={resolutionTier}
         compact={props.compact}
         running={running}
         sceneryReady={sceneryReady}

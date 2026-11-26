@@ -3,10 +3,12 @@ export const QUALITY_LEVELS = ['low', 'medium', 'high'] as const;
 export type FactoryQuality = (typeof QUALITY_LEVELS)[number];
 export type QualityPreference = FactoryQuality | 'auto' | 'ultra' | 'off';
 
-export const QUALITY_PROFILES = {
-  low: { dpr: 0.6, maxPixels: 550_000 },
-  medium: { dpr: 0.9, maxPixels: 1_200_000 },
-  high: { dpr: 1.5, maxPixels: 2_500_000 },
+export const QUALITY_SCALES = { low: 50, medium: 75, high: 100, ultra: 125 } as const;
+
+const autoPixelBudget = {
+  low: 550_000,
+  medium: 1_200_000,
+  high: 2_500_000,
 } as const;
 
 export function parseFactoryQuality(value: string | null): QualityPreference {
@@ -30,9 +32,12 @@ export function renderPixelRatio(
   device: number,
   compact = false,
 ) {
-  const { dpr, maxPixels } = QUALITY_PROFILES[quality];
+  const maxPixels = autoPixelBudget[quality];
   const budget = compact ? Math.min(maxPixels, 720_000) : maxPixels;
-  return Math.min(dpr, device, Math.sqrt(budget / Math.max(1, width * height)));
+  return Math.min(
+    device * (QUALITY_SCALES[quality] / 100),
+    Math.sqrt(budget / Math.max(1, width * height)),
+  );
 }
 
 export class AdaptiveQuality {

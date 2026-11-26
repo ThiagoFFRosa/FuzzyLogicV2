@@ -1,38 +1,28 @@
-import { renderPixelRatio } from './factoryQuality';
+import { QUALITY_SCALES, renderPixelRatio } from './factoryQuality';
 import type { FactoryQuality, QualityPreference } from './factoryQuality';
 
 export const GRAPHICS_STORAGE_KEY = 'fuzzs-render-settings-v1';
-export const RENDER_SCALES = [50, 60, 75, 85, 100, 125, 150, 175, 200] as const;
-export const ANTIALIAS_MODES = ['off', 'fxaa', 'msaa'] as const;
-export const SHADOW_LEVELS = ['off', 'low', 'medium', 'high', 'ultra'] as const;
-export const TEXTURE_LEVELS = ['standard', 'high'] as const;
+export const RENDER_SCALES = Object.values(QUALITY_SCALES);
 export const POST_MODES = ['off', 'bloom'] as const;
 export const FRAME_LIMITS = [0, 30, 60, 120, 144, 165] as const;
 
 export type GraphicsPreset = Exclude<QualityPreference, 'off'>;
-export type Antialias = (typeof ANTIALIAS_MODES)[number];
-export type ShadowQuality = (typeof SHADOW_LEVELS)[number];
+export type Antialias = 'off' | 'fxaa' | 'msaa';
 export interface GraphicsSettings {
   scale: (typeof RENDER_SCALES)[number] | null;
-  aa: Antialias;
-  shadows: ShadowQuality;
-  textures: (typeof TEXTURE_LEVELS)[number];
   post: (typeof POST_MODES)[number];
   fps: (typeof FRAME_LIMITS)[number];
-  dynamic: boolean;
 }
 
-export type GraphicsOverrides = Partial<GraphicsSettings>;
+export type GraphicsOverrides = Partial<Omit<GraphicsSettings, 'scale'>> & {
+  scale?: NonNullable<GraphicsSettings['scale']>;
+};
 export type GraphicsProfiles = Partial<Record<GraphicsPreset, GraphicsOverrides>>;
 
 const fields = {
   scale: RENDER_SCALES,
-  aa: ANTIALIAS_MODES,
-  shadows: SHADOW_LEVELS,
-  textures: TEXTURE_LEVELS,
   post: POST_MODES,
   fps: FRAME_LIMITS,
-  dynamic: [true, false],
 } satisfies { [Key in keyof GraphicsSettings]: readonly GraphicsSettings[Key][] };
 
 const presets = ['auto', 'low', 'medium', 'high', 'ultra'] as const;
@@ -61,18 +51,12 @@ export function parseGraphicsProfiles(json: string | null): GraphicsProfiles {
 
 export function graphicsSettings(
   preset: GraphicsPreset,
-  tier: FactoryQuality,
   overrides: GraphicsOverrides,
 ): GraphicsSettings {
-  const ultra = preset === 'ultra';
   return {
-    scale: ultra ? 100 : null,
-    aa: ultra ? 'msaa' : 'off',
-    shadows: ultra ? 'ultra' : tier === 'low' ? 'off' : tier,
-    textures: ultra ? 'high' : 'standard',
+    scale: preset === 'auto' ? null : QUALITY_SCALES[preset],
     post: 'off',
     fps: 0,
-    dynamic: preset === 'auto',
     ...overrides,
   };
 }
@@ -84,8 +68,6 @@ type RasterArea = {
   compact: boolean;
   tier: FactoryQuality;
 };
-const dynamicScale = { low: 0.6, medium: 0.85, high: 1 } as const;
-
 export function resolveResolution(
   { width, height, device, compact, tier }: RasterArea,
   settings: GraphicsSettings,
@@ -94,7 +76,7 @@ export function resolveResolution(
   const requestedDpr =
     settings.scale === null
       ? renderPixelRatio(tier, width, height, device, compact)
-      : device * (settings.scale / 100) * (settings.dynamic ? dynamicScale[tier] : 1);
+      : device * (settings.scale / 100);
   const dpr = Math.min(
     requestedDpr,
     maxWidth / Math.max(width, 1),
@@ -103,35 +85,13 @@ export function resolveResolution(
   return { dpr, requestedDpr, limited: dpr < requestedDpr };
 }
 
-export const SHADOW_INTERVALS: Record<ShadowQuality, number> = {
-  off: 0,
-  low: 1 / 8,
-  medium: 1 / 12,
-  high: 1 / 24,
-  ultra: 1 / 60,
-};
+export const SHADOW_INTERVAL = 1 / 24;
+export const MAIN_SHADOW_SIZE = 1024;
 
-export function shadowMapSize(
-  quality: ShadowQuality,
-  zone: 'main' | 'outer' | 'service',
-  compact: boolean,
-) {
-  if (quality === 'off') return 0;
-  if (zone === 'outer')
-    return compact || quality === 'low' || quality === 'medium'
-      ? 0
-      : quality === 'ultra'
-        ? 1024
-        : 512;
-  if (zone === 'service')
-    return compact || quality === 'low' || quality === 'medium'
-      ? 0
-      : quality === 'ultra'
-        ? 512
-        : 256;
-  if (quality === 'low') return 256;
-  if (quality === 'ultra') return 2048;
-  return quality === 'high' && !compact ? 1024 : 512;
+export function shadowMapSize(zone: 'main' | 'outer' | 'service', compact: boolean) {
+  if (zone === 'main') return MAIN_SHADOW_SIZE;
+  if (compact) return 0;
+  return zone === 'outer' ? 512 : 256;
 }
 
 export interface RenderReport {

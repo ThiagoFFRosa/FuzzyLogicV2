@@ -14,7 +14,7 @@ import {
 } from '../../../lib/conveyor';
 import { crateDesigns, crateHardware } from './crateDesign';
 import { crateLabel } from './sceneTextures';
-import { Surface, useEmissionTexture } from './FactoryMaterials';
+import { Surface } from './FactoryMaterials';
 import { MechanicalPlates } from './MechanicalParts';
 import { CLOSED_CRATE, crateInspectionPose } from '../../../lib/inspection';
 import type { InspectionSession, ProjectAnchor } from '../../../lib/inspection';
@@ -50,7 +50,6 @@ export interface CrateProps {
   anchors: MutableRefObject<ProjectAnchor[]>;
   onSelect: (index: number) => void;
   onHover: (index: number | null) => void;
-  contactShadow: boolean;
   projectionRevision: MutableRefObject<number>;
 }
 export function ProjectCrate({
@@ -62,7 +61,6 @@ export function ProjectCrate({
   anchors,
   onSelect,
   onHover,
-  contactShadow,
   projectionRevision,
 }: CrateProps) {
   const group = useRef<Group>(null),
@@ -73,7 +71,6 @@ export function ProjectCrate({
   const status = useRef<MeshStandardMaterial>(null);
   const pose = useRef(CLOSED_CRATE);
   const projected = useMemo(() => new Vector3(), []);
-  const shadowMap = useEmissionTexture();
   const previousProjection = useRef({ x: NaN, width: 0, height: 0, revision: -1 });
   const look = crateDesigns[index];
   const [width, height, depth] = look.dimensions;
@@ -215,22 +212,6 @@ export function ProjectCrate({
       <mesh geometry={shell} castShadow receiveShadow>
         <Surface kind={look.surface} color={look.shell} />
       </mesh>
-      {contactShadow && (
-        <mesh
-          position={[0, 0.012 - (height - 0.12) / 2, 0]}
-          rotation={[-Math.PI / 2, 0, 0]}
-          raycast={() => undefined}
-        >
-          <planeGeometry args={[width * 1.6, depth * 1.55]} />
-          <meshBasicMaterial
-            map={shadowMap}
-            color="#07100e"
-            transparent
-            opacity={0.7}
-            depthWrite={false}
-          />
-        </mesh>
-      )}
       <MechanicalPlates plates={hardware.shell} kind="wornPaint" />
       <group ref={face} name="crate-identification-panel">
         <MechanicalPlates plates={hardware.face} kind="wornPaint" />

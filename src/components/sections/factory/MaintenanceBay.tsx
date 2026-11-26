@@ -11,7 +11,6 @@ import { FLUID_CIRCUITS } from './infrastructureLayout';
 import { FLOOR_LEVEL, SERVICE_BAY } from './groundLayout';
 import { canvasTexture } from './sceneTextures';
 import { shadowMapSize } from '../../../lib/factoryGraphics';
-import type { ShadowQuality } from '../../../lib/factoryGraphics';
 
 const { pallet, barrels, scrap } = SERVICE_BAY;
 const PALLET_TOP = FLOOR_LEVEL + 0.14;
@@ -375,18 +374,16 @@ export function MaintenanceBay({
   locale,
   mobile,
   lowResolution,
-  shadows,
 }: {
   ambient: AmbientScheduler;
   locale: Locale;
   mobile: boolean;
   lowResolution: boolean;
-  shadows: ShadowQuality;
 }) {
   if (mobile) return null;
   return (
     <group name="left-maintenance-bay">
-      <ServiceLight size={shadowMapSize(shadows, 'service', mobile)} />
+      <ServiceLight size={shadowMapSize('service', mobile)} />
       <StoragePallet locale={locale} />
       <FluidDrums locale={locale} />
       <BrokenTurretProp ambient={ambient} compact={lowResolution} />

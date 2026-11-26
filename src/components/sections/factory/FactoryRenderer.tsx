@@ -3,7 +3,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import type { Camera, Scene, Texture } from 'three';
 import type { FactoryQuality } from '../../../lib/factoryQuality';
 import type { GraphicsSettings, RenderReport } from '../../../lib/factoryGraphics';
-import { resolveResolution } from '../../../lib/factoryGraphics';
+import { MAIN_SHADOW_SIZE, resolveResolution } from '../../../lib/factoryGraphics';
 import { createFactoryPost } from './factoryPost';
 
 type TimerQuery = { TIME_ELAPSED_EXT: number; GPU_DISJOINT_EXT: number };
@@ -31,7 +31,6 @@ function filterTextures(scene: Scene, anisotropy: number) {
 export function FactoryRenderer({
   settings,
   tier,
-  resolutionTier,
   compact,
   running,
   sceneryReady,
@@ -43,7 +42,6 @@ export function FactoryRenderer({
 }: {
   settings: GraphicsSettings;
   tier: FactoryQuality;
-  resolutionTier: FactoryQuality;
   compact: boolean;
   running: boolean;
   sceneryReady: boolean;
@@ -72,7 +70,6 @@ export function FactoryRenderer({
   const last = useRef({
     frame: -Infinity,
     report: -Infinity,
-    textures: -Infinity,
     count: 0,
     sum: 0,
   });
@@ -92,11 +89,11 @@ export function FactoryRenderer({
     ms: null,
     next: 0,
   });
-  const supportsMSAA = settings.aa === 'msaa' && hardware.samples > 1;
-  const wantsFXAA = settings.aa === 'fxaa' || (settings.aa === 'msaa' && !supportsMSAA);
+  const supportsMSAA = hardware.samples > 1;
+  const wantsFXAA = !supportsMSAA;
   const wantsPost = wantsFXAA || settings.post !== 'off';
   const maxDimension = wantsPost ? gl.capabilities.maxTextureSize : Infinity;
-  const anisotropy = Math.min(hardware.anisotropy, settings.textures === 'high' ? 16 : 4);
+  const anisotropy = Math.min(hardware.anisotropy, 4);
 
   useLayoutEffect(() => {
     let density: MediaQueryList | undefined;
@@ -106,7 +103,7 @@ export function FactoryRenderer({
       density = matchMedia(`(resolution: ${device}dppx)`);
       density.addEventListener('change', update);
       const resolved = resolveResolution(
-        { width: size.width, height: size.height, device, tier: resolutionTier, compact },
+        { width: size.width, height: size.height, device, tier, compact },
         settings,
         [Math.min(hardware.width, maxDimension), Math.min(hardware.height, maxDimension)],
       );
@@ -125,7 +122,7 @@ export function FactoryRenderer({
     size.width,
     size.height,
     compact,
-    resolutionTier,
+    tier,
     settings,
     hardware,
     maxDimension,
@@ -246,10 +243,9 @@ export function FactoryRenderer({
       clock.count++;
       clock.sum += elapsed;
     }
-    if (needsTextures.current || (settings.textures === 'high' && now - clock.textures >= 1250)) {
+    if (needsTextures.current) {
       filterTextures(scene, anisotropy);
       needsTextures.current = false;
-      clock.textures = now;
     }
     try {
       const { filter, bloom, cpuMs } = draw(scene, camera, now, width, height);
@@ -269,11 +265,10 @@ export function FactoryRenderer({
         height + 1 < size.height * Math.min(requestedDpr, rendererDpr)
       )
         limitations.push('resolution');
-      if (settings.aa === 'msaa' && !supportsMSAA) limitations.push('msaa');
+      if (!supportsMSAA) limitations.push('msaa');
       if ((wantsFXAA && !filter) || (settings.post === 'bloom' && !bloom)) limitations.push('post');
-      if (settings.textures === 'high' && anisotropy < 16) limitations.push('textures');
-      if (settings.shadows === 'ultra' && gl.capabilities.maxTextureSize < 2048)
-        limitations.push('shadows');
+      if (anisotropy < 4) limitations.push('textures');
+      if (gl.capabilities.maxTextureSize < MAIN_SHADOW_SIZE) limitations.push('shadows');
       const report: RenderReport = {
         css: [Math.round(size.width), Math.round(size.height)],
         physical,
@@ -286,7 +281,7 @@ export function FactoryRenderer({
         anisotropy,
         maxAnisotropy: hardware.anisotropy,
         post: bloom ? 'bloom' : 'off',
-        dynamic: settings.dynamic,
+        dynamic: settings.scale === null,
         tier,
         limitations,
       };
