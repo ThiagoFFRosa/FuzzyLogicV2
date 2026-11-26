@@ -1,30 +1,38 @@
 import { useEffect, useMemo } from 'react';
 import { Surface } from './FactoryMaterials';
-import { block, flange, hose, lathe, pivot, supervisorBatch } from './supervisorGeometry';
+import { curvedSkin } from './robotSkin';
+import {
+  beveledPlate,
+  block,
+  flange,
+  hose,
+  lathe,
+  pivot,
+  supervisorBatch,
+} from './supervisorGeometry';
+
+const PANELS = [
+  [-0.86, 0.49, 0.53],
+  [-0.74, 0.77, 0.8],
+  [-0.53, 1.01, 1.07],
+  [-0.27, 1.16, 1.21],
+  [0.03, 1.23, 1.25],
+  [0.29, 1.16, 1.17],
+  [0.46, 1.01, 1.02],
+  [0.52, 0.887, 0.9],
+] as const;
+const SEAMS = [-0.54, 0.94, 2.53, 4.17, Math.PI * 2 - 0.54];
+const CERAMIC = ['#d2cbb0', '#b0baaa', '#c9c6b1', '#d7d3bd'];
 
 export function SupervisorShell({ shadows }: { shadows: boolean }) {
   const { ceramic, chassis } = useMemo(() => {
     const ceramic = supervisorBatch([
-      lathe(
-        [
-          [0.55, -0.59],
-          [0.76, -0.53],
-          [0.96, -0.4],
-          [1.12, -0.23],
-          [1.23, -0.01],
-          [1.26, 0.2],
-          [1.21, 0.36],
-          [1.08, 0.49],
-          [0.9, 0.51],
-          [0.86, 0.45],
-          [0.87, 0.35],
-          [1.03, 0.27],
-          [1.07, 0.13],
-          [0.84, -0.39],
-          [0.55, -0.59],
-        ],
-        '#d6d1b7',
-      ),
+      ...CERAMIC.map((color, i) => ({
+        color,
+        geometry: curvedSkin(PANELS, SEAMS[i] + 0.033, SEAMS[i + 1] - 0.033, 10, 0.079).rotateX(
+          Math.PI / 2,
+        ),
+      })),
       ...[-1, 1].map((side) =>
         block([0.31, 0.31, 0.33], [side * 1.16, -0.13, -0.04], '#9fa497', side * 0.19),
       ),
@@ -33,12 +41,13 @@ export function SupervisorShell({ shadows }: { shadows: boolean }) {
     const chassis = supervisorBatch([
       lathe(
         [
-          [0, -0.63],
-          [0.5, -0.63],
-          [0.86, -0.45],
-          [1.08, -0.17],
-          [1.17, 0.1],
-          [1.12, 0.25],
+          [0, -0.94],
+          [0.5, -0.94],
+          [0.73, -0.71],
+          [0.94, -0.5],
+          [1.075, -0.23],
+          [1.14, 0.02],
+          [1.07, 0.26],
           [0.87, 0.38],
           [0.81, 0.42],
           [0.76, 0.33],
@@ -53,14 +62,30 @@ export function SupervisorShell({ shadows }: { shadows: boolean }) {
       flange(1.13, 0.029, 0.389, '#4f5e56', 0.59, 4.45),
       block([0.47, 0.31, 0.45], [0, 0.94, -0.38], '#6f7d74'),
       block([0.35, 0.11, 0.1], [0, -1.16, 0.418], '#283a39'),
+      pivot(0.44, 0.15, [0, 0, -0.95], '#647263', 10),
+      pivot(0.38, 0.046, [0, 0, -1.03], '#253a37', 10),
+      ...Array.from({ length: 5 }, (_, index) =>
+        block([0.54, 0.034, 0.059], [0, (index - 2) * 0.094, -1.069], '#899480'),
+      ),
       ...[-1, 1].flatMap((side) => [
+        rearSocket(side),
+        hose(
+          [
+            [side * 0.21, 0.48, -1.04],
+            [side * 0.34, 0.63, -0.98],
+            [side * 0.34, 0.86, -0.71],
+            [side * 0.24, 1.01, -0.43],
+          ],
+          0.028,
+          '#a18c65',
+        ),
         hose(
           [
             [side * 0.83, 0.66, 0.26],
             [side * 1.05, 0.81, 0.18],
             [side * 1.28, 0.74, 0.11],
             [side * 1.39, 0.52, 0.04],
-            [side * 1.35, 0.31, -0.1],
+            [side * 1.14, 0.31, -0.18],
           ],
           0.051,
           '#b9c0ab',
@@ -84,7 +109,7 @@ export function SupervisorShell({ shadows }: { shadows: boolean }) {
       <mesh name="supervisor-shell" geometry={ceramic} castShadow={shadows} receiveShadow>
         <Surface kind="ceramic" color="#ffffff" vertexColors emissive="#879387" intensity={0.19} />
       </mesh>
-      <mesh geometry={chassis} receiveShadow>
+      <mesh name="supervisor-service-chassis" geometry={chassis} receiveShadow>
         <Surface
           kind="wornPaint"
           color="#ffffff"
@@ -95,4 +120,20 @@ export function SupervisorShell({ shadows }: { shadows: boolean }) {
       </mesh>
     </>
   );
+}
+
+function rearSocket(side: number) {
+  const socket = beveledPlate(
+    [
+      [-0.12, -0.14],
+      [0.12, -0.14],
+      [0.15, 0.11],
+      [0, 0.18],
+      [-0.15, 0.11],
+    ],
+    0.085,
+    '#4d6158',
+  );
+  socket.geometry.translate(side * 0.22, 0.4, -0.964);
+  return socket;
 }

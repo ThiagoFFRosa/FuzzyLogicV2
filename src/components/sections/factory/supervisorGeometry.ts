@@ -4,17 +4,19 @@ import {
   CatmullRomCurve3,
   Color,
   CylinderGeometry,
+  ExtrudeGeometry,
   Float32BufferAttribute,
   LatheGeometry,
+  Shape,
   TorusGeometry,
   TubeGeometry,
   Vector2,
   Vector3,
 } from 'three';
-import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 
 type Point = [number, number, number];
-type Part = { geometry: BufferGeometry; color: string };
+export type Part = { geometry: BufferGeometry; color: string };
 
 export function supervisorBatch(parts: Part[]) {
   for (const { geometry, color } of parts) {
@@ -31,6 +33,25 @@ export function supervisorBatch(parts: Part[]) {
 
 export function block(size: Point, position: Point, color: string, turn = 0): Part {
   return { geometry: new BoxGeometry(...size).rotateZ(turn).translate(...position), color };
+}
+
+export function beveledPlate(
+  profile: [number, number][],
+  depth: number,
+  color: string,
+  bevel = 0.025,
+): Part {
+  const shape = new Shape(profile.map(([x, y]) => new Vector2(x, y)));
+  const source = new ExtrudeGeometry(shape, {
+    depth: depth - 2 * bevel,
+    bevelSize: bevel,
+    bevelThickness: bevel,
+    bevelSegments: 1,
+    steps: 1,
+  }).translate(0, 0, -depth / 2 + bevel);
+  const geometry = mergeVertices(source);
+  source.dispose();
+  return { geometry, color };
 }
 
 export function pivot(

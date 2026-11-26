@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useInsertionEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { RepeatWrapping } from 'three';
-import type { WebGLProgramParametersWithUniforms } from 'three';
+import type { BufferGeometry, WebGLProgramParametersWithUniforms } from 'three';
 import { canvasTexture } from './sceneTextures';
 import type { FactoryQuality } from '../../../lib/factoryQuality';
 import { FactoryBoxes } from './factoryGeometry';
@@ -122,6 +122,7 @@ const MaterialContext = createContext<{
   maps: ReturnType<typeof createLibrary>;
   quality: FactoryQuality;
   boxes: FactoryBoxes;
+  robots: Map<string, BufferGeometry>;
 } | null>(null);
 export function useEmissionTexture() {
   return useContext(MaterialContext)?.maps.halo;
@@ -133,6 +134,16 @@ export function useFactoryBox(size: [number, number, number], concrete = false) 
   return library.boxes.get(size, concrete);
 }
 
+export function useRobotGeometry(key: string, build: () => BufferGeometry) {
+  const library = useContext(MaterialContext);
+  if (!library) throw new Error('Robot geometry requires FactoryMaterials.');
+  const existing = library.robots.get(key);
+  if (existing) return existing;
+  const geometry = build();
+  library.robots.set(key, geometry);
+  return geometry;
+}
+
 export function FactoryMaterials({
   children,
   quality,
@@ -142,10 +153,18 @@ export function FactoryMaterials({
 }) {
   const maps = useMemo(createLibrary, []);
   const boxes = useMemo(() => new FactoryBoxes(), []);
-  const value = useMemo(() => ({ maps, quality, boxes }), [maps, quality, boxes]);
+  const robots = useMemo(() => new Map<string, BufferGeometry>(), []);
+  const value = useMemo(() => ({ maps, quality, boxes, robots }), [maps, quality, boxes, robots]);
   useEffect(() => () => Object.values(maps).forEach((map) => map.dispose()), [maps]);
   // Like the R3F canvas, keep scene-owned resources across StrictMode effect replay.
-  useInsertionEffect(() => () => boxes.dispose(), [boxes]);
+  useInsertionEffect(
+    () => () => {
+      boxes.dispose();
+      robots.forEach((geometry) => geometry.dispose());
+      robots.clear();
+    },
+    [boxes, robots],
+  );
   return <MaterialContext.Provider value={value}>{children}</MaterialContext.Provider>;
 }
 

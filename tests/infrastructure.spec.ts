@@ -108,3 +108,54 @@ test('reduced motion holds both circuits still and theme changes retain every fl
   expect(mobile.salvageIntensity).toBeNull();
   await expect(page.locator('.factory-project-controls button')).toHaveCount(5);
 });
+
+test('the rebuilt turret remains on the belt and clears the scanner on the warning pass', async ({
+  page,
+}) => {
+  test.setTimeout(55_000);
+  await page.addInitScript(() => localStorage.setItem('fuzzs-quality', 'low'));
+  await page.goto('/');
+  await expect(page.locator('#home')).toHaveAttribute('data-boot', 'running', { timeout: 35_000 });
+  const crossing = await page.evaluate(async () => {
+    const canvas = document.querySelector('.production-canvas canvas')!;
+    const resources = performance.getEntriesByType('resource');
+    const [{ _roots }, { Box3 }] = await Promise.all([
+      import(resources.find(({ name }) => name.includes('/@react-three_fiber.js'))!.name),
+      import(resources.find(({ name }) => name.includes('/three.js'))!.name),
+    ]);
+    const sceneRoot = _roots.get(canvas).store;
+    const { scene, setFrameloop } = sceneRoot.getState();
+    const turret = scene.getObjectByName('factory-turret-damaged');
+    const wash = scene.getObjectByName('scanner-wash');
+    const scanner = wash.parent;
+    const marker = scanner.position.x;
+    setFrameloop('never');
+    const state = sceneRoot.getState();
+    const tick = () => {
+      state.clock.elapsedTime += 0.05;
+      for (const { ref, priority, store } of state.internal.subscribers) {
+        if (priority <= 0) ref.current(store.getState(), 0.05);
+      }
+    };
+    for (let index = 0; index < 1200; index++) {
+      const previous = turret.position.x;
+      tick();
+      if (previous >= marker || turret.position.x < marker) continue;
+      const bounds = new Box3().setFromObject(turret, true);
+      for (let frame = 0; frame < 4; frame++) tick();
+      return {
+        footY: bounds.min.y,
+        roofClearance: 4.29 - bounds.max.y,
+        sideClearance: 2.03 - Math.max(-bounds.min.z, bounds.max.z),
+        wash: wash.intensity,
+        fog: scene.fog?.isFog,
+      };
+    }
+    throw new Error('The damaged turret did not cross the scanner.');
+  });
+  expect(crossing.footY).toBeCloseTo(0.905, 2);
+  expect(crossing.roofClearance).toBeGreaterThan(0.5);
+  expect(crossing.sideClearance).toBeGreaterThan(0.5);
+  expect(crossing.wash).toBeGreaterThan(0);
+  expect(crossing.fog).toBe(true);
+});

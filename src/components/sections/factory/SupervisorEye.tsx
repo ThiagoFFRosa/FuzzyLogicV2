@@ -13,8 +13,9 @@ import {
 } from 'three';
 import type { SpriteMaterial } from 'three';
 import { SUPERVISOR_MODES } from '../../../lib/supervisor';
-import { Surface, useEmissionTexture } from './FactoryMaterials';
-import { flange, lathe, supervisorBatch } from './supervisorGeometry';
+import { Surface, useEmissionTexture, useRobotGeometry } from './FactoryMaterials';
+import { raisedLens } from './robotSkin';
+import { beveledPlate, flange, lathe, supervisorBatch } from './supervisorGeometry';
 
 export interface SupervisorMotion {
   yaw: number;
@@ -88,8 +89,27 @@ export function SupervisorEye({
   animate: boolean;
 }) {
   const pivot = useRef<Group>(null);
+  const shutter = useRef<Group>(null);
   const halo = useRef<SpriteMaterial>(null);
   const haloTexture = useEmissionTexture();
+  const glass = useRobotGeometry('supervisor-lens', () => raisedLens(0.688, 0.078, 40));
+  const blades = useRobotGeometry(
+    'supervisor-iris-blade',
+    () =>
+      beveledPlate(
+        [
+          [-0.405, 0.01],
+          [-0.21, -0.085],
+          [0.21, -0.085],
+          [0.405, 0.01],
+          [0.31, 0.13],
+          [-0.31, 0.13],
+        ],
+        0.033,
+        '#ffffff',
+        0.009,
+      ).geometry,
+  );
   const mode = SUPERVISOR_MODES[amber ? 'amber' : 'blue'];
   const tint = useMemo(() => new Color(mode.tint), [mode]);
   const hot = useMemo(() => new Color(mode.hot), [mode]);
@@ -100,19 +120,24 @@ export function SupervisorEye({
       supervisorBatch([
         lathe(
           [
-            [0.72, -0.13],
-            [0.793, -0.1],
-            [0.8, -0.04],
-            [0.78, 0.008],
-            [0.716, 0.012],
-            [0.69, -0.031],
-            [0.691, -0.102],
-            [0.73, -0.13],
+            [0.72, -0.18],
+            [0.806, -0.12],
+            [0.823, -0.02],
+            [0.811, 0.079],
+            [0.781, 0.128],
+            [0.714, 0.128],
+            [0.694, 0.088],
+            [0.69, 0.018],
+            [0.677, -0.038],
+            [0.676, -0.132],
+            [0.72, -0.18],
           ],
           '#21393c',
           40,
         ),
-        flange(0.716, 0.019, 0.014, '#628181'),
+        flange(0.71, 0.018, 0.093, '#627e7b'),
+        flange(0.699, 0.011, 0.038, '#354f50'),
+        ...[0.44, 2.53, 4.63].map((turn) => flange(0.793, 0.013, 0.111, '#9e9f8b', 0.22, turn)),
       ]),
     [],
   );
@@ -146,6 +171,11 @@ export function SupervisorEye({
   useFrame((_, delta) => {
     const pose = motion.current;
     if (pivot.current) pivot.current.rotation.set(pose.pitch, pose.yaw, 0, 'YXZ');
+    if (shutter.current) {
+      const gap = MathUtils.lerp(0.19, 0.52, pose.blink * (1 - 0.28 * pose.irritation));
+      shutter.current.children[0].position.y = gap;
+      shutter.current.children[1].position.y = -gap;
+    }
     const blend = animate ? 1 - Math.exp(-7.2 * Math.min(delta, 0.07)) : 1;
     const { uniforms } = lens;
     uniforms.tint.value.lerp(targetTint.copy(tint).lerp(IRRITATED_TINT, pose.irritation), blend);
@@ -163,14 +193,20 @@ export function SupervisorEye({
 
   return (
     <>
-      <group ref={pivot} name="supervisor-eye" position={[0, 0, 0.363]}>
+      <group ref={pivot} name="supervisor-eye" position={[0, 0, 0.438]}>
         <mesh geometry={housing} receiveShadow>
           <Surface kind="steel" color="#ffffff" vertexColors emissive="#243c3c" intensity={0.18} />
         </mesh>
-        <mesh name="supervisor-lens" position={[0, 0, 0.01]} material={lens}>
-          <circleGeometry args={[0.706, 36]} />
-        </mesh>
-        <sprite position={[0, 0, 0.15]} scale={[0.59, 0.59, 1]}>
+        <mesh name="supervisor-lens" position={[0, 0, 0.008]} geometry={glass} material={lens} />
+        <group ref={shutter} name="supervisor-optical-shutter" position={[0, 0, 0.101]}>
+          <mesh geometry={blades} position={[0, 0.52, 0]}>
+            <Surface kind="steel" color="#354947" />
+          </mesh>
+          <mesh geometry={blades} position={[0, -0.52, 0]} rotation={[0, 0, Math.PI]}>
+            <Surface kind="steel" color="#354947" />
+          </mesh>
+        </group>
+        <sprite position={[0, 0, 0.186]} scale={[0.59, 0.59, 1]}>
           <spriteMaterial
             ref={halo}
             map={haloTexture}

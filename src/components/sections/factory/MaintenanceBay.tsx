@@ -6,7 +6,9 @@ import { Float32BufferAttribute, LatheGeometry, Object3D, Vector2 } from 'three'
 import type { MeshStandardMaterial, Points, SpotLight } from 'three';
 import { MechanicalPlates } from './MechanicalParts';
 import type { Plate } from './MechanicalParts';
-import { Surface } from './FactoryMaterials';
+import { Surface, useRobotGeometry } from './FactoryMaterials';
+import { TurretChassis, TurretLensHousing, TurretPanel } from './TurretGeometry';
+import { raisedLens } from './robotSkin';
 import { FLUID_CIRCUITS } from './infrastructureLayout';
 import { FLOOR_LEVEL, SERVICE_BAY } from './groundLayout';
 import { canvasTexture } from './sceneTextures';
@@ -252,6 +254,7 @@ const DEBRIS: Plate[] = [
 ];
 
 function BrokenTurretProp({ ambient, compact }: { ambient: AmbientScheduler; compact: boolean }) {
+  const glass = useRobotGeometry('salvage-optic', () => raisedLens(0.076, 0.03, 12));
   const lamp = useRef<MeshStandardMaterial>(null);
   const sparks = useRef<Points>(null);
   const particlePositions = useMemo(() => new Float32BufferAttribute(new Float32Array(12), 3), []);
@@ -280,49 +283,26 @@ function BrokenTurretProp({ ambient, compact }: { ambient: AmbientScheduler; com
       rotation={[0, -0.19, 0]}
     >
       <MechanicalPlates plates={DEBRIS} kind="steel" />
-      <mesh
-        position={[0.03, 0.38, 0.05]}
-        rotation={[0, 0.17, -1.36]}
-        scale={[0.39, 0.68, 0.37]}
-        castShadow
-        receiveShadow
-      >
-        <sphereGeometry args={[1, 14, 10]} />
-        <Surface kind="rubber" color="#3f4e48" />
-      </mesh>
-      <mesh
-        position={[-0.32, 0.4, 0.12]}
-        rotation={[0, 0.24, -1.22]}
-        scale={[0.23, 0.47, 0.33]}
-        castShadow
-        receiveShadow
-      >
-        <sphereGeometry args={[1, 12, 8]} />
-        <Surface kind="ceramic" color="#93978a" />
-      </mesh>
-      <mesh
-        position={[0.84, 0.19, -0.31]}
-        rotation={[0, -0.24, -1.43]}
-        scale={[0.17, 0.5, 0.32]}
-        castShadow
-        receiveShadow
-      >
-        <sphereGeometry args={[1, 12, 8]} />
-        <Surface kind="ceramic" color="#727971" />
-      </mesh>
-      <mesh position={[0.12, 0.36, 0.401]} rotation={[Math.PI / 2, 0, 0]}>
-        <cylinderGeometry args={[0.095, 0.115, 0.052, 10]} />
-        <Surface kind="steel" color="#758374" />
-      </mesh>
-      <mesh name="salvage-status-light" position={[0.12, 0.36, 0.432]}>
-        <circleGeometry args={[0.064, 12]} />
-        <meshStandardMaterial
-          ref={lamp}
-          color="#765144"
-          emissive="#e39a59"
-          emissiveIntensity={0.07}
-        />
-      </mesh>
+      <group position={[0.03, 0.49, 0.05]} rotation={[0, 0.17, 1.36]} scale={0.86}>
+        <TurretChassis damaged detailed={!compact} />
+      </group>
+      <group position={[-0.45, 0.47, 0.06]} rotation={[0, 0.52, -1.18]} scale={0.73}>
+        <TurretPanel side={-1} detailed={!compact} castShadow color="#93978a" />
+      </group>
+      <group position={[0.85, 0.39, -0.31]} rotation={[0.42, -0.44, 1.36]} scale={0.64}>
+        <TurretPanel side={1} detailed={!compact} castShadow color="#858d80" />
+      </group>
+      <group position={[0.12, 0.36, 0.455]} rotation={[0.18, -0.2, 0]} scale={0.65}>
+        <TurretLensHousing damaged detailed={!compact} />
+        <mesh name="salvage-status-light" position={[0, 0, 0.072]} geometry={glass}>
+          <meshStandardMaterial
+            ref={lamp}
+            color="#765144"
+            emissive="#e39a59"
+            emissiveIntensity={0.07}
+          />
+        </mesh>
+      </group>
       <points ref={sparks} position={[0.32, 0.36, 0.25]} visible={false} frustumCulled={false}>
         <bufferGeometry>
           <primitive object={particlePositions} attach="attributes-position" />
@@ -335,17 +315,6 @@ function BrokenTurretProp({ ambient, compact }: { ambient: AmbientScheduler; com
           size={0.041}
         />
       </points>
-      {!compact && (
-        <mesh
-          position={[1.13, 0.2, 0.45]}
-          rotation={[0.4, 0.91, -1.38]}
-          scale={[0.12, 0.37, 0.23]}
-          castShadow
-        >
-          <sphereGeometry args={[1, 10, 7]} />
-          <Surface kind="ceramic" color="#7d8578" />
-        </mesh>
-      )}
     </group>
   );
 }
@@ -357,14 +326,9 @@ function EmptyTurretHousing() {
       position={[-12.68, FLOOR_LEVEL + 0.25, 5.68]}
       rotation={[0.22, -0.51, -1.49]}
     >
-      <mesh scale={[0.29, 0.59, 0.3]} castShadow receiveShadow>
-        <sphereGeometry args={[1, 14, 9, 0.48, 4.28]} />
-        <Surface kind="ceramic" color="#848b7c" />
-      </mesh>
-      <mesh scale={[0.26, 0.55, 0.25]} rotation={[0, 0.3, 0]}>
-        <sphereGeometry args={[1, 12, 8, 0, 3.6]} />
-        <Surface kind="rubber" color="#25332e" />
-      </mesh>
+      <group scale={0.72} rotation={[0.13, 0.72, 0]}>
+        <TurretPanel side={1} detailed={false} castShadow color="#a0a794" />
+      </group>
     </group>
   );
 }

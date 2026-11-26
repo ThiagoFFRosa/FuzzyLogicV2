@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { Group, MathUtils, Mesh } from 'three';
 import { ARM, solveSupervisorElbow } from '../../../lib/supervisor';
 import { Surface } from './FactoryMaterials';
-import { block, hose, pivot, supervisorBatch } from './supervisorGeometry';
+import { beveledPlate, block, hose, lathe, pivot, supervisorBatch } from './supervisorGeometry';
 
 const STEEL = '#778175';
 const DARK = '#354743';
@@ -22,12 +22,32 @@ function moveLink(link: Group, x: number, y: number, endX: number, endY: number)
 }
 
 function linkGeometry(length: number, wide: number) {
+  const cheeks = [-1, 1].map((side) => {
+    const plate = beveledPlate(
+      [
+        [-0.105, 0.05],
+        [0.079, 0.05],
+        [0.13, length * 0.18],
+        [0.073, length * 0.67],
+        [0.095, length - 0.14],
+        [0.037, length - 0.01],
+        [-0.091, length - 0.04],
+        [-0.066, length * 0.61],
+        [-0.126, length * 0.21],
+      ],
+      0.43,
+      side < 0 ? STEEL : JOINT,
+    );
+    plate.geometry.translate(side * wide * 0.52, 0, -0.045);
+    return plate;
+  });
   return supervisorBatch([
-    block([wide, length - 0.24, 0.48], [0, length / 2, -0.05], DARK),
-    block([wide * 0.76, length - 0.43, 0.08], [0, length / 2, 0.24], STEEL),
-    block([wide + 0.12, 0.24, 0.59], [0, 0.27, 0], JOINT),
-    block([wide + 0.1, 0.24, 0.59], [0, length - 0.27, 0], JOINT),
-    block([0.077, length * 0.62, 0.09], [-wide * 0.5, length * 0.54, 0.27], '#8c9986'),
+    ...cheeks,
+    block([wide, length * 0.25, 0.17], [0, length * 0.5, -0.11], DARK, 0.23),
+    pivot(wide * 0.62, 0.49, [0, 0.14, -0.039], DARK, 12),
+    pivot(wide * 0.63, 0.46, [0, length - 0.12, -0.025], DARK, 12),
+    pivot(wide * 0.39, 0.065, [0, 0.14, 0.229], YOKE, 10),
+    pivot(wide * 0.37, 0.065, [0, length - 0.12, 0.229], STEEL, 10),
     hose(
       [
         [wide * 0.42, 0.12, -0.12],
@@ -40,6 +60,25 @@ function linkGeometry(length: number, wide: number) {
       '#263735',
     ),
   ]);
+}
+
+function cylinderGeometry() {
+  const barrel = lathe(
+    [
+      [0, 0.02],
+      [0.125, 0.02],
+      [0.135, 0.09],
+      [0.105, 0.19],
+      [0.114, 0.63],
+      [0.144, 0.7],
+      [0.137, 0.81],
+      [0.055, 0.81],
+    ],
+    JOINT,
+    12,
+  );
+  barrel.geometry.rotateX(-Math.PI / 2);
+  return supervisorBatch([barrel, pivot(0.102, 0.31, [0, 0.041, 0.007], DARK, 10)]);
 }
 
 export function CeilingArm({
@@ -62,12 +101,29 @@ export function CeilingArm({
     () => ({
       rail: supervisorBatch([
         block([1.66, 0.35, 4.6], [shoulderX, 15.19, -0.2], '#4b5a55'),
-        ...[-1, 1].map((side) =>
+        ...[-1, 1].flatMap((side) => [
           block([0.22, 0.32, 4.63], [shoulderX + side * 0.56, 14.87, -0.2], STEEL),
-        ),
+          block([0.12, 0.86, 1.05], [shoulderX + side * 0.57, 14.5, 0], DARK, side * -0.31),
+          pivot(0.15, 0.082, [shoulderX + side * 0.54, 14.53, 0.559], YOKE, 8),
+        ]),
         block([1.02, 0.55, 1.35], [shoulderX, 14.49, 0], JOINT),
-        block([0.55, 1.56, 0.59], [shoulderX, 13.54, 0], DARK),
-        block([0.22, 1.29, 0.07], [shoulderX, 13.59, 0.32], YOKE),
+        ...[-0.22, 0.22].map((offset) => {
+          const clevis = beveledPlate(
+            [
+              [-0.28, -0.46],
+              [0, -0.75],
+              [0.28, -0.46],
+              [0.31, 0.74],
+              [0.38, 1.34],
+              [-0.38, 1.34],
+              [-0.31, 0.74],
+            ],
+            0.135,
+            DARK,
+          );
+          clevis.geometry.translate(shoulderX, shoulderY + 0.43, offset);
+          return clevis;
+        }),
         pivot(0.39, 0.62, [shoulderX, shoulderY, 0], DARK),
         pivot(0.27, 0.075, [shoulderX, shoulderY, 0.344], STEEL),
         hose(
@@ -85,6 +141,7 @@ export function CeilingArm({
       lower: linkGeometry(ARM.lower, 0.36),
       elbow: supervisorBatch([
         pivot(0.35, 0.61, [0, 0, 0], '#3b4c47'),
+        pivot(0.31, 0.076, [0, 0, -0.335], STEEL, 12),
         pivot(0.26, 0.094, [0, 0, 0.334], STEEL),
         pivot(0.11, 0.064, [0, 0, 0.397], '#9b9a7d', 8),
         hose(
@@ -101,9 +158,12 @@ export function CeilingArm({
       wrist: supervisorBatch([
         pivot(0.26, 0.58, [0, 0, 0], DARK),
         pivot(0.174, 0.11, [0, 0, 0.29], STEEL),
-        block([0.38, 0.47, 0.32], [0, -0.28, -0.24], STEEL),
-        block([0.55, 0.21, 0.43], [0, -0.47, -0.2], JOINT),
+        ...[-1, 1].map((side) =>
+          block([0.13, 0.52, 0.47], [side * 0.198, -0.26, -0.16], STEEL, side * 0.28),
+        ),
+        block([0.52, 0.19, 0.51], [0, -0.47, -0.2], JOINT),
       ]),
+      cylinder: cylinderGeometry(),
     }),
     [shoulderX, shoulderY],
   );
@@ -131,7 +191,7 @@ export function CeilingArm({
     const endY = MathUtils.lerp(middle.y, y, 0.56);
     moveLink(piston.current, startX, startY, endX, endY);
     piston.current.position.z = 0.29;
-    const extension = Math.hypot(endX - startX, endY - startY) - 0.81;
+    const extension = Math.max(0.001, Math.hypot(endX - startX, endY - startY) - 0.81);
     rod.current.position.y = 0.81 + extension / 2;
     rod.current.scale.y = extension;
   });
@@ -169,17 +229,16 @@ export function CeilingArm({
           />
         </mesh>
       </group>
-      <group ref={elbow}>
+      <group ref={elbow} name="supervisor-elbow">
         <mesh geometry={geometry.elbow} receiveShadow>
           <Surface kind="steel" color="#ffffff" vertexColors />
         </mesh>
       </group>
-      <group ref={piston}>
-        <mesh position={[0, 0.425, 0]}>
-          <cylinderGeometry args={[0.108, 0.117, 0.85, 10]} />
-          <Surface kind="steel" color="#485d55" />
+      <group ref={piston} name="supervisor-piston">
+        <mesh geometry={geometry.cylinder}>
+          <Surface kind="steel" color="#ffffff" vertexColors />
         </mesh>
-        <mesh ref={rod}>
+        <mesh ref={rod} name="supervisor-piston-rod">
           <cylinderGeometry args={[0.054, 0.054, 1, 10]} />
           <Surface kind="steel" color="#a5ab98" emissive="#626a5d" intensity={0.12} />
         </mesh>

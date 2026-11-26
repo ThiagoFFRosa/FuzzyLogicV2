@@ -3,11 +3,13 @@ import type { MutableRefObject, RefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { ThreeEvent } from '@react-three/fiber';
 import type { AmbientScheduler } from '../../../lib/ambientEvents';
-import { AdditiveBlending, Color, Group, MathUtils, Object3D, Vector3, Quaternion } from 'three';
+import { AdditiveBlending, Group, MathUtils } from 'three';
 import { BELT_SURFACE, DOCK_OCCLUSION, beltPosition, onExposedBelt } from '../../../lib/conveyor';
 import { CharacterReaction } from '../../../lib/characterReaction';
-import { Structure } from './FactoryEnvironment';
-import { Surface, useEmissionTexture } from './FactoryMaterials';
+import { useEmissionTexture, useRobotGeometry } from './FactoryMaterials';
+import { raisedLens } from './robotSkin';
+import { TurretChassis, TurretLegs, TurretLensHousing, TurretPanelHinge } from './TurretGeometry';
+import type { TurretVariant } from './TurretGeometry';
 import type {
   BufferGeometry,
   MeshStandardMaterial,
@@ -16,23 +18,10 @@ import type {
   SpriteMaterial,
 } from 'three';
 
-export type TurretVariant = 'active' | 'sleeping' | 'damaged';
+export type { TurretVariant } from './TurretGeometry';
 type Point = [number, number, number];
 
-const UP = new Vector3(0, 1, 0);
 const SPARK_POSITIONS = new Float32Array([-0.17, 0.24, 0.49, 0.04, 0.36, 0.55, 0.25, 0.19, 0.52]);
-
-function Strut({ from, to, size, color }: { from: Point; to: Point; size: number; color: string }) {
-  const direction = new Vector3(...to).sub(new Vector3(...from));
-  const center = new Vector3(...from).lerp(new Vector3(...to), 0.5);
-  const orientation = new Quaternion().setFromUnitVectors(UP, direction.clone().normalize());
-  return (
-    <mesh position={center} quaternion={orientation}>
-      <boxGeometry args={[size, direction.length(), size]} />
-      <Surface kind="steel" color={color} />
-    </mesh>
-  );
-}
 
 export function TurretModel({
   variant,
@@ -56,6 +45,9 @@ export function TurretModel({
   interaction?: CharacterReaction;
 }) {
   const head = useRef<Group>(null);
+  const optic = useRef<Group>(null);
+  const port = useRef<Group>(null);
+  const starboard = useRef<Group>(null);
   const lens = useRef<MeshStandardMaterial>(null);
   const halo = useRef<SpriteMaterial>(null);
   const sparks = useRef<Points<BufferGeometry, PointsMaterial>>(null);
@@ -66,6 +58,10 @@ export function TurretModel({
   const color = damaged ? '#a7a18c' : active ? '#d3d6c6' : '#b8b7a1';
   const jointY = active ? 1.12 : damaged ? 0.8 : 0.6;
   const idleEnergy = active ? 1.55 : damaged ? 0.42 : 0;
+
+  const lensGeometry = useRobotGeometry(`turret-lens:${damaged}:${detailed}`, () =>
+    raisedLens(damaged ? 0.11 : 0.122, 0.046, detailed ? 20 : 12),
+  );
 
   useFrame(({ pointer, clock }, delta) => {
     const now = interaction ? performance.now() : 0;
@@ -126,6 +122,10 @@ export function TurretModel({
       head.current.rotation.z = roll - slump * 0.42;
       head.current.position.y = -slump * 0.15;
     }
+    if (optic.current) optic.current.rotation.y = -0.24 * (head.current?.rotation.y ?? 0);
+    const panelYaw = active ? 0.23 : damaged ? 0.34 : -0.21;
+    if (port.current) port.current.rotation.y = -panelYaw + slump * 0.15;
+    if (starboard.current) starboard.current.rotation.y = panelYaw - slump * 0.15;
     if (lens.current) lens.current.emissiveIntensity = energy;
     if (halo.current) halo.current.opacity = Math.min(0.62, energy * (active ? 0.31 : 0.52));
     if (sparks.current) {
@@ -138,111 +138,48 @@ export function TurretModel({
     }
   });
 
-  const feet: Point[] = [
-    [-0.72, 0.07, 0.34],
-    [0.72, 0.07, damaged ? 0.08 : 0.34],
-    [0, 0.07, -0.69],
-  ];
-  const legs = feet.map((foot, index) => {
-    const side = index === 0 ? -1 : 1;
-    const hip: Point = index === 2 ? [0, jointY, -0.19] : [side * 0.34, jointY, 0.04];
-    const knee: Point =
-      index === 2
-        ? [0, active ? 0.61 : 0.32, -0.57]
-        : [side * (active ? 0.58 : 0.72), active ? 0.67 : 0.38, foot[2] - 0.08];
-    return { hip, knee, foot };
-  });
   return (
     <group name={`turret-model-${variant}`}>
-      <instancedMesh
-        args={[undefined, undefined, legs.length * 3]}
-        receiveShadow={detailed}
-        onUpdate={(mesh) => {
-          const part = new Object3D();
-          const start = new Vector3();
-          const direction = new Vector3();
-          const tint = new Color();
-          legs.forEach(({ hip, knee, foot }, index) => {
-            const segments = [
-              [hip, knee, detailed ? 0.16 : 0.19, '#546963'],
-              [knee, foot, 0.095, '#91a194'],
-            ] as const;
-            segments.forEach(([from, to, width, color], segment) => {
-              start.set(...from);
-              direction.set(...to).sub(start);
-              part.position.copy(start).addScaledVector(direction, 0.5);
-              part.scale.set(width, direction.length(), width);
-              part.quaternion.setFromUnitVectors(UP, direction.normalize());
-              part.updateMatrix();
-              mesh.setMatrixAt(index * 3 + segment, part.matrix);
-              mesh.setColorAt(index * 3 + segment, tint.set(color));
-            });
-            part.position.set(...foot);
-            part.scale.set(0.23, 0.14, 0.3);
-            part.quaternion.identity();
-            part.updateMatrix();
-            mesh.setMatrixAt(index * 3 + 2, part.matrix);
-            mesh.setColorAt(index * 3 + 2, tint.set('#52615b'));
-          });
-          mesh.instanceMatrix.needsUpdate = true;
-          if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-          mesh.computeBoundingSphere();
-        }}
-      >
-        <boxGeometry args={[1, 1, 1]} />
-        <Surface kind="steel" color="#ffffff" />
-      </instancedMesh>
-      {detailed &&
-        legs.map(({ knee }, index) => (
-          <mesh key={index} position={knee} rotation={[0, 0, Math.PI / 2]}>
-            <cylinderGeometry args={[0.11, 0.11, 0.19, 8]} />
-            <Surface kind="steel" color="#425957" />
-          </mesh>
-        ))}
+      <TurretLegs variant={variant} detailed={detailed} />
       <group
         position={[damaged ? -0.13 : 0, jointY + 0.49, 0]}
         rotation={[active ? 0 : 0.19, 0, damaged ? 0.17 : 0]}
       >
         <group ref={head} name={`turret-head-${variant}`}>
-          <mesh castShadow={detailed} receiveShadow={detailed} scale={[0.47, 0.86, 0.39]}>
-            <sphereGeometry args={[1, detailed ? 16 : 10, detailed ? 12 : 7]} />
-            <Surface kind="plastic" color="#293c40" />
-          </mesh>
-          {[-1, 1].map((side) => (
-            <mesh
-              key={side}
-              position={[
-                side * (active ? 0.37 : 0.31) + (damaged && side > 0 ? 0.13 : 0),
-                damaged && side > 0 ? -0.22 : 0.02,
-                -0.024,
-              ]}
-              rotation={[0, side * 0.13, damaged && side > 0 ? -0.43 : side * 0.09]}
-              scale={[0.28, damaged && side > 0 ? 0.48 : 0.86, 0.41]}
-              castShadow={detailed}
-            >
-              <sphereGeometry args={[1, detailed ? 14 : 9, detailed ? 10 : 7]} />
-              <Surface kind="ceramic" color={color} />
-            </mesh>
-          ))}
-          <mesh position={[0, 0.13, 0.4]} rotation={[Math.PI / 2, 0, 0]}>
-            <cylinderGeometry args={[0.18, 0.19, 0.12, 12]} />
-            <Surface kind="steel" color="#62726b" />
-          </mesh>
-          <mesh name={`turret-lens-${variant}`} position={[0, 0.13, 0.472]} scale={[1, 1, 0.38]}>
-            <sphereGeometry args={[0.115, 10, 8]} />
-            <meshStandardMaterial
-              ref={lens}
-              color={variant === 'sleeping' ? '#293c3b' : '#ed946d'}
-              emissive={
-                interaction && variant === 'sleeping'
-                  ? '#c98a56'
-                  : variant === 'sleeping'
-                    ? '#000000'
-                    : '#f07651'
-              }
-              emissiveIntensity={idleEnergy}
+          <TurretChassis damaged={damaged} detailed={detailed} />
+          <TurretPanelHinge
+            side={-1}
+            hinge={port}
+            variant={variant}
+            detailed={detailed}
+            color={color}
+          />
+          {!damaged && (
+            <TurretPanelHinge
+              side={1}
+              hinge={starboard}
+              variant={variant}
+              detailed={detailed}
+              color={color}
             />
-          </mesh>
+          )}
+          <group ref={optic} name="turret-optic-pivot" position={[0, 0.13, 0.42]}>
+            <TurretLensHousing damaged={damaged} detailed={detailed} />
+            <mesh name={`turret-lens-${variant}`} position={[0, 0, 0.059]} geometry={lensGeometry}>
+              <meshStandardMaterial
+                ref={lens}
+                color={variant === 'sleeping' ? '#293c3b' : '#ed946d'}
+                emissive={
+                  interaction && variant === 'sleeping'
+                    ? '#c98a56'
+                    : variant === 'sleeping'
+                      ? '#000000'
+                      : '#f07651'
+                }
+                emissiveIntensity={idleEnergy}
+              />
+            </mesh>
+          </group>
           {interaction && (
             <points
               ref={sparks}
@@ -268,23 +205,6 @@ export function TurretModel({
                 blending={AdditiveBlending}
               />
             </sprite>
-          )}
-          {detailed && (
-            <>
-              <Structure
-                position={[-0.32, -0.28, 0.36]}
-                size={[0.25, 0.065, 0.04]}
-                color="#93866a"
-              />
-              {damaged && (
-                <Strut
-                  from={[0.23, 0.36, 0.17]}
-                  to={[0.57, -0.17, 0.37]}
-                  size={0.045}
-                  color="#b58053"
-                />
-              )}
-            </>
           )}
         </group>
       </group>

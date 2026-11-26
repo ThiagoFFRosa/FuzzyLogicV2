@@ -1,5 +1,13 @@
 # Changelog do FuzzyLogic V2
 
+## 2026-11-26 — Parte 18.2 · Geometria dos robôs
+
+- Reconstruiu as turrets com carcaça de espessura real, chassis exposto, três apoios articulados e lentes convexas em barris ópticos. As posturas de operação, armazenamento e dano têm silhuetas próprias. A sucata reaproveita os componentes da linha.
+- Reconstruiu o supervisor com carcaça segmentada, traseira de serviço, lente convexa e lâminas de obturador. O braço ganhou suporte bifurcado, elos vazados, eixos e atuador hidráulico com a cinemática existente.
+- Registrou frente, lateral, traseira e perspectiva dos seis modelos, além da câmera de produção em desktop, ultrawide e mobile. O teste do scanner confirmou apoio na esteira, folga, pulso e fog. [Relatório dos modelos](docs/parte-18-2-modelos.md).
+- Passaram build, lint, 35 testes unitários e 5 testes de distribuição. Os 41 cenários Chromium foram verificados em execuções separadas, com uma repetição isolada do teste de presets após timeout na troca emulada de DPR.
+- No ultrawide em HIGH, a cena passou de 436 para 447 chamadas e de 55.381 para 66.489 triângulos. As geometrias alocadas passaram de 278 para 258. A medição de tempo usou SwiftShader e a validação em GPU física segue pendente.
+
 ## 2026-11-26 — Parte 18.5 · Reações do supervisor e das turrets
 
 - O supervisor reconhece o primeiro clique, reage à insistência e, no quinto clique da sequência, sobe com o braço, inclina a cabeça e colore a lente de vermelho antes de recuperar a pose e a personalidade do tema.
