@@ -17,16 +17,16 @@ const { pallet, barrels, scrap } = SERVICE_BAY;
 const PALLET_TOP = FLOOR_LEVEL + 0.14;
 
 const BOXES: Plate[] = [
-  { at: [pallet.x - 0.74, PALLET_TOP + 0.5, pallet.z], size: [1.62, 1, 1.38], color: '#697162' },
+  { at: [pallet.x - 0.74, PALLET_TOP + 0.5, pallet.z], size: [1.62, 1, 1.38], color: '#807657' },
   {
     at: [pallet.x + 0.93, PALLET_TOP + 0.39, pallet.z + 0.07],
     size: [1.28, 0.78, 1.19],
-    color: '#4a5851',
+    color: '#4c5b51',
   },
   {
     at: [pallet.x - 0.63, PALLET_TOP + 1.27, pallet.z - 0.05],
     size: [1.2, 0.54, 1.08],
-    color: '#818070',
+    color: '#a09978',
   },
 ];
 
@@ -34,9 +34,9 @@ const CRATE_HARDWARE: Plate[] = [
   ...[-0.91, 0.91].map((offset): Plate => ({
     at: [pallet.x + offset, FLOOR_LEVEL + 0.065, pallet.z],
     size: [0.34, 0.13, 1.57],
-    color: '#414940',
+    color: '#564b3b',
   })),
-  { at: [pallet.x, FLOOR_LEVEL + 0.115, pallet.z], size: [3.5, 0.065, 1.58], color: '#5d5e4c' },
+  { at: [pallet.x, FLOOR_LEVEL + 0.115, pallet.z], size: [3.5, 0.065, 1.58], color: '#77715a' },
   ...BOXES.flatMap(({ at: [x, y, z], size: [w, h, d] }): Plate[] => [
     { at: [x, y + h * 0.45, z], size: [w + 0.035, 0.105, d + 0.04], color: '#3c4a42' },
     { at: [x, y - h * 0.43, z], size: [w + 0.03, 0.09, d + 0.035], color: '#48524a' },
@@ -179,11 +179,13 @@ function FluidDrums({ locale }: { locale: Locale }) {
     const labels = barrels.map(({ circuit }) =>
       canvasTexture(
         (ctx) => {
-          ctx.fillStyle = '#242f2b';
+          ctx.fillStyle = '#696456';
           ctx.fillRect(0, 0, 256, 120);
+          ctx.fillStyle = '#c9bf9e';
+          ctx.fillRect(4, 4, 248, 112);
           ctx.fillStyle = FLUID_CIRCUITS[circuit].color;
           ctx.fillRect(9, 10, 14, 100);
-          ctx.fillStyle = '#c7c2aa';
+          ctx.fillStyle = '#302f27';
           ctx.font = '700 52px monospace';
           ctx.fillText(FLUID_CIRCUITS[circuit].id, 35, 59);
           ctx.font = '600 23px monospace';
@@ -245,7 +247,7 @@ function FluidDrums({ locale }: { locale: Locale }) {
 const DEBRIS: Plate[] = [
   { at: [-0.36, 0.085, 0.15], size: [0.9, 0.17, 0.23], color: '#4a5750', angle: 0.08 },
   { at: [0.03, 0.19, -0.36], size: [1.48, 0.13, 0.33], color: '#53564d' },
-  { at: [1.07, 0.08, 0.4], size: [0.6, 0.07, 0.14], color: '#676a58', angle: 0.12 },
+  { at: [1.07, 0.08, 0.4], size: [0.6, 0.07, 0.14], color: '#8b7454', angle: 0.12 },
   { at: [1.43, 0.11, 0.53], size: [0.23, 0.15, 0.23], color: '#3e4b49' },
   { at: [-0.9, 0.065, 0.68], size: [0.44, 0.09, 0.42], color: '#777868' },
 ];

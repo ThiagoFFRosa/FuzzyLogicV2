@@ -12,6 +12,7 @@ const profiles = {
   paint: [0.72, 0.16, 0.035],
   wornPaint: [0.8, 0.18, 0.055],
   rubber: [0.95, 0, 0.027],
+  wood: [0.94, 0, 0.027],
   plastic: [0.64, 0, 0.018],
   ceramic: [0.52, 0, 0.012],
   glass: [0.34, 0, 0.012],
@@ -82,6 +83,25 @@ function createLibrary() {
     steel: surfaceTexture('steel'),
     wornPaint: surfaceTexture('wornPaint'),
     rubber: surfaceTexture('rubber'),
+    wood: canvasTexture(
+      (ctx) => {
+        const random = randomSequence(94);
+        ctx.fillStyle = '#ded3bb';
+        ctx.fillRect(0, 0, 256, 128);
+        for (let i = 0; i < 148; i++) {
+          const y = random() * 128;
+          ctx.strokeStyle = i % 4 ? '#58402c24' : '#fff4da66';
+          ctx.lineWidth = 0.25 + random() * 0.84;
+          ctx.beginPath();
+          ctx.moveTo(0, y);
+          ctx.bezierCurveTo(54, y, 81, y + 7 * Math.sin(i), 128, y);
+          ctx.bezierCurveTo(160, y - 4, 209, y, 256, y);
+          ctx.stroke();
+        }
+      },
+      256,
+      128,
+    ),
     halo: canvasTexture(
       (ctx) => {
         const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
@@ -95,6 +115,7 @@ function createLibrary() {
       64,
     ),
   };
+  maps.wood.wrapS = maps.wood.wrapT = RepeatWrapping;
   return maps;
 }
 const MaterialContext = createContext<{
@@ -148,7 +169,12 @@ export function Surface({
   const context = useContext(MaterialContext);
   const maps = context?.maps;
   const map =
-    maps && (kind === 'concrete' || kind === 'steel' || kind === 'wornPaint' || kind === 'rubber')
+    maps &&
+    (kind === 'concrete' ||
+      kind === 'steel' ||
+      kind === 'wornPaint' ||
+      kind === 'rubber' ||
+      kind === 'wood')
       ? maps[kind]
       : null;
   const [roughness, metalness, bumpScale] = profiles[kind];

@@ -1,5 +1,13 @@
 # Changelog do FuzzyLogic V2
 
+## 2026-11-26 — Parte 18 · Props e containers retroindustriais
+
+- Reestruturou os cinco containers como gavetas de arquivo e expedição, estojo de instrumentos, caixote de madeira e módulo de amostras. Nome e número são os únicos textos das etiquetas. O painel HTML concentra as informações detalhadas e abre a partir da gaveta ou da tampa.
+- Refinou os acabamentos do supervisor, do braço, das turrets e dos itens de manutenção. Reutilizou a biblioteca de materiais e agrupou as ferragens dos containers. A área de textura das cinco etiquetas caiu 87,5%, de 1024 × 768 para 512 × 192 por objeto, com um mapa procedural de madeira compartilhado.
+- Conferiu os cinco nomes e cliques físicos em LOW a 864 × 552, as duas gavetas e as três tampas, além da circulação com o scanner energizado. Capturou desktop, ultrawide e mobile com os enquadramentos oficiais.
+- No Chromium com SwiftShader, o ultrawide em ULTRA passou de 475 para 436 chamadas, de 307 para 278 geometrias, de 54.781 para 55.381 triângulos e de 33 para 34 texturas carregadas. Em desktop as chamadas caíram de 341 para 315 e em mobile de 293 para 268. As amostras ultrawide e mobile variaram de 0,41 para 0,42 FPS e de 3,36 para 3,30 FPS. São medições de oito quadros em software. A GPU física segue pendente.
+- Passaram build, lint, 31 testes unitários, 16 cenários Chromium de fábrica, mobile, qualidade e infraestrutura, e 5 testes de distribuição.
+
 ## 2026-11-26 — Parte 17 · Eficiência de renderização
 
 - Compartilhou caixas com mesmas dimensões e UVs e agrupou suportes, listras e partes repetidas da parede em lotes regionais. Os lotes preservam materiais, cores e sombras.

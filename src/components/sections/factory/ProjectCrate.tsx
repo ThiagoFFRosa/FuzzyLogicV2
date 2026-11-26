@@ -5,7 +5,6 @@ import type { ThreeEvent } from '@react-three/fiber';
 import { ExtrudeGeometry, Group, Vector3, MathUtils, Shape } from 'three';
 import type { MeshStandardMaterial } from 'three';
 import { projects } from '../../../data/projects';
-import type { Locale } from '../../../lib/behavior';
 import {
   BELT_SURFACE,
   DOCK_OCCLUSION,
@@ -13,11 +12,10 @@ import {
   beltPosition,
   onExposedBelt,
 } from '../../../lib/conveyor';
-import { productLooks, projectTexture } from './sceneTextures';
-import { Structure } from './FactoryEnvironment';
+import { crateDesigns, crateHardware } from './crateDesign';
+import { crateLabel } from './sceneTextures';
 import { Surface, useEmissionTexture } from './FactoryMaterials';
 import { MechanicalPlates } from './MechanicalParts';
-import type { Plate } from './MechanicalParts';
 import { CLOSED_CRATE, crateInspectionPose } from '../../../lib/inspection';
 import type { InspectionSession, ProjectAnchor } from '../../../lib/inspection';
 
@@ -45,7 +43,6 @@ function beveledCratePanel(width: number, height: number, depth: number, bevel: 
 
 export interface CrateProps {
   index: number;
-  locale: Locale;
   travel: MutableRefObject<number>;
   inspection: InspectionSession | null;
   hovered: number | null;
@@ -58,7 +55,6 @@ export interface CrateProps {
 }
 export function ProjectCrate({
   index,
-  locale,
   travel,
   inspection,
   hovered,
@@ -79,28 +75,36 @@ export function ProjectCrate({
   const projected = useMemo(() => new Vector3(), []);
   const shadowMap = useEmissionTexture();
   const previousProjection = useRef({ x: NaN, width: 0, height: 0, revision: -1 });
-  const look = productLooks[index];
+  const look = crateDesigns[index];
   const [width, height, depth] = look.dimensions;
   const shell = useMemo(
     () => beveledCratePanel(width, height - 0.28, depth, 0.11).translate(0, -0.08, 0),
     [width, height, depth],
   );
-  const tray = useMemo(() => {
-    const rimY = height / 2 - 0.14;
-    return [-1, 1].flatMap((side): Plate[] => [
-      { at: [side * (width / 2 - 0.086), rimY, 0], size: [0.17, 0.16, depth], color: look.shell },
-      {
-        at: [0, rimY, side * (depth / 2 - 0.07)],
-        size: [width - 0.17, 0.16, 0.15],
-        color: look.shell,
-      },
-    ]);
-  }, [width, height, depth, look.shell]);
+  const hardware = useMemo(() => crateHardware(look), [look]);
   const cover = useMemo(
     () => beveledCratePanel(width + 0.12, 0.18, depth + 0.08, 0.055),
     [width, depth],
   );
-  const texture = useMemo(() => projectTexture(projects[index], index, locale), [index, locale]);
+  const texture = useMemo(
+    () => crateLabel(projects[index].name, index + 1, look.paper, look.accent),
+    [index, look],
+  );
+  const latch = useMemo(
+    () => [
+      {
+        at: [0, -0.12, 0] as [number, number, number],
+        size: [0.14, 0.27, 0.09] as [number, number, number],
+        color: look.frame,
+      },
+      {
+        at: [0, -0.19, 0.028] as [number, number, number],
+        size: [0.105, 0.045, 0.053] as [number, number, number],
+        color: '#b7ad8f',
+      },
+    ],
+    [look],
+  );
   useEffect(() => () => texture.dispose(), [texture]);
   useEffect(
     () => () => {
@@ -129,14 +133,14 @@ export function ProjectCrate({
           : CLOSED_CRATE;
     }
     const current = pose.current;
-    lid.current.rotation.x = -1.28 * current.lid;
-    if (face.current) face.current.position.z = 0.18 * current.face;
+    lid.current.rotation.x = (hardware.drawer ? -0.43 : -1.28) * current.lid;
+    if (face.current) face.current.position.z = (hardware.drawer ? 0.52 : 0) * current.face;
     latches.current.forEach((latch) => {
       if (latch) latch.rotation.x = 0.82 * current.latches;
     });
-    if (interior.current) interior.current.emissiveIntensity = 0.035 + current.light * 0.85;
+    if (interior.current) interior.current.emissiveIntensity = 0.035 + current.light * 0.55;
     if (status.current)
-      status.current.emissiveIntensity = 0.27 + (highlight ? 0.82 : 0) + current.light * 0.6;
+      status.current.emissiveIntensity = 0.1 + (highlight ? 0.62 : 0) + current.light * 0.4;
 
     const last = previousProjection.current;
     if (
@@ -209,7 +213,7 @@ export function ProjectCrate({
       }}
     >
       <mesh geometry={shell} castShadow receiveShadow>
-        <Surface kind={index === 2 ? 'plastic' : 'wornPaint'} color={look.shell} />
+        <Surface kind={look.surface} color={look.shell} />
       </mesh>
       {contactShadow && (
         <mesh
@@ -227,45 +231,28 @@ export function ProjectCrate({
           />
         </mesh>
       )}
-      <MechanicalPlates plates={tray} kind={index === 2 ? 'plastic' : 'wornPaint'} />
+      <MechanicalPlates plates={hardware.shell} kind="wornPaint" />
       <group ref={face} name="crate-identification-panel">
-        <Structure
-          position={[0, -0.015, depth / 2 + 0.01]}
-          size={[width * 0.91, height * 0.9, 0.075]}
-          color={look.ink}
-        />
-        <mesh position={[0, -0.015, depth / 2 + 0.05]}>
-          <planeGeometry args={[width * 0.88, height * 0.86]} />
-          <meshBasicMaterial map={texture} toneMapped={false} />
+        <MechanicalPlates plates={hardware.face} kind="wornPaint" />
+        <mesh name="crate-nameplate" position={[0, hardware.labelY, depth / 2 + 0.081]}>
+          <planeGeometry args={[hardware.labelWidth, hardware.labelHeight]} />
+          <meshStandardMaterial
+            map={texture}
+            emissiveMap={texture}
+            emissive="#fff8e6"
+            emissiveIntensity={0.35}
+            roughness={0.92}
+          />
         </mesh>
       </group>
-      <group ref={lid} position={[0, height / 2, -depth / 2]}>
+      <group ref={lid} position={[0, height / 2, -depth / 2]} name="crate-cover">
         <mesh position={[0, 0, depth / 2]} geometry={cover} castShadow>
-          <Surface kind={index === 2 ? 'plastic' : 'wornPaint'} color={look.shell} />
+          <Surface kind={look.surface} color={look.shell} />
         </mesh>
-        <Structure
-          position={[0, 0.1, depth / 2]}
-          size={[width * 0.64, 0.06, 0.08]}
-          color={highlight ? look.accent : '#50605b'}
-        />
-        <Structure
-          position={[0, 0.13, depth * 0.68]}
-          size={[width * 0.36, 0.09, 0.105]}
-          color={look.accent}
-        />
+        <MechanicalPlates plates={hardware.lid} />
       </group>
       {[-1, 1].map((side, latchIndex) => (
         <group key={side}>
-          <Structure
-            position={[side * (width / 2 - 0.1), 0, depth / 2 + 0.055]}
-            size={[0.12, height, 0.1]}
-            color="#69766b"
-          />
-          <Structure
-            position={[side * (width / 2 + 0.04), height * 0.15, 0]}
-            size={[0.12, 0.15, depth * 0.52]}
-            color="#4e5c54"
-          />
           <mesh
             position={[side * width * 0.3, height / 2, -depth / 2 - 0.038]}
             rotation={[0, 0, Math.PI / 2]}
@@ -280,12 +267,7 @@ export function ProjectCrate({
             position={[side * width * 0.42, height * 0.464, depth / 2 + 0.105]}
             name="crate-latch"
           >
-            <Structure position={[0, -0.12, 0]} size={[0.14, 0.27, 0.09]} color="#65736a" />
-            <Structure
-              position={[0, -0.19, 0.028]}
-              size={[0.105, 0.045, 0.053]}
-              color={look.accent}
-            />
+            <MechanicalPlates plates={latch} />
           </group>
         </group>
       ))}
@@ -293,7 +275,7 @@ export function ProjectCrate({
         <boxGeometry args={[width * 0.74, 0.06, depth * 0.74]} />
         <meshStandardMaterial
           ref={interior}
-          color={look.ink}
+          color="#262b28"
           emissive={look.accent}
           emissiveIntensity={isSelected ? 0.55 : 0.04}
         />
@@ -307,18 +289,6 @@ export function ProjectCrate({
           emissiveIntensity={highlight ? 2 : 0.3}
         />
       </mesh>
-      {index === 2 && (
-        <Structure position={[0, height / 2 + 0.16, 0]} size={[0.9, 0.16, 0.5]} color="#293a3c" />
-      )}
-      {index === 3 &&
-        [-0.6, 0, 0.6].map((x) => (
-          <Structure
-            key={x}
-            position={[x, height / 2 + 0.12, 0]}
-            size={[0.22, 0.1, 0.22]}
-            color="#b9d19b"
-          />
-        ))}
     </group>
   );
 }

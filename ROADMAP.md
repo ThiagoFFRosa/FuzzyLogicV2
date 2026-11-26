@@ -22,7 +22,7 @@ Estados disponíveis: `PENDING`, `IN_PROGRESS`, `IMPLEMENTED`, `VALIDATED`, `BLO
 | 15.1 — Git e checkpoints | VALIDATED | Backup verificado por SHA-256, material público auditado e checkpoint inicial preparado com build, lint e 66 testes aprovados. A referência `main` no GitHub fornece o SHA publicado. |
 | 16 — Render Quality & Visual Fidelity | VALIDATED | ULTRA nativo, MSAA/FXAA, ajustes independentes e diagnóstico. Buffer 3440 × 1159 e MSAA 4× confirmados na viewport ultrawide emulada. Medições e capturas em [Parte 16](docs/parte-16-renderizacao.md). Pendentes monitor e GPU físicos, Safari/iOS e altas taxas de atualização. |
 | 17 — Lossless Optimization | VALIDATED | Geometria compartilhada, instancing regional e menos trabalho de transform. No ultrawide emulado, 537 → 475 chamadas e 526 → 307 geometrias com o mesmo buffer e MSAA. Diferenças de borda, FPS e limites documentados no [relatório da Parte 17](docs/parte-17-eficiencia.md). GPU física e Safari/iOS seguem pendentes. |
-| 18 — Asset Refinement | PENDING | Planejada. |
+| 18 — Asset Refinement | VALIDATED | Cinco props retroindustriais com etiquetas mínimas e inspeção HTML. Aparência conferida em desktop, ultrawide e mobile, com os cinco cliques e aberturas verificados em LOW. Build, lint, 31 testes unitários, 16 cenários Chromium e 5 testes de distribuição passaram. No ultrawide emulado, 475 → 436 chamadas de desenho. GPU física segue pendente. |
 | 19 — Final QA & Release | PENDING | Planejada. Revisão final inclui Safari/iOS, aparelhos físicos e desempenho em GPU. |
 
 ## Limitações conhecidas

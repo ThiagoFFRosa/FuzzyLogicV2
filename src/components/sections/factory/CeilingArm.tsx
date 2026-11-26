@@ -6,10 +6,10 @@ import { ARM, solveSupervisorElbow } from '../../../lib/supervisor';
 import { Surface } from './FactoryMaterials';
 import { block, hose, pivot, supervisorBatch } from './supervisorGeometry';
 
-const STEEL = '#697971';
+const STEEL = '#778175';
 const DARK = '#354743';
 const JOINT = '#445b55';
-const YOKE = '#839087';
+const YOKE = '#938c71';
 
 export interface SupervisorWrist {
   x: number;

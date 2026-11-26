@@ -51,7 +51,7 @@ export function TurretModel({
   const cursor = useRef({ x: 0, y: 0, at: -Infinity });
   const active = variant === 'active';
   const damaged = variant === 'damaged';
-  const color = damaged ? '#a5afa2' : '#d6ddce';
+  const color = damaged ? '#a7a18c' : active ? '#d3d6c6' : '#b8b7a1';
   const jointY = active ? 1.12 : damaged ? 0.8 : 0.6;
 
   useFrame(({ pointer, clock }, delta) => {
@@ -210,7 +210,7 @@ export function TurretModel({
               <Structure
                 position={[-0.32, -0.28, 0.36]}
                 size={[0.25, 0.065, 0.04]}
-                color="#6e8073"
+                color="#93866a"
               />
               {damaged && (
                 <Strut
