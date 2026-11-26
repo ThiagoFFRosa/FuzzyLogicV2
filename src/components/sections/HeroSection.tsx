@@ -5,6 +5,8 @@ import { useCoreTheme } from '../core/CoreThemeProvider';
 import { RoboticCore } from '../core/RoboticCore';
 import { profile, projects } from '../../data/projects';
 import { SUPERVISOR_REACTION_MS } from '../../lib/supervisor';
+import type { SupervisorFeedback } from '../../lib/supervisor';
+import { CharacterReaction } from '../../lib/characterReaction';
 import { FactoryInspection } from './factory/FactoryInspection';
 import { FactoryBoundary } from './factory/FactoryBoundary';
 import { CLOSE_MS, OPEN_MS, crateOrigin, inspectionReducer } from '../../lib/inspection';
@@ -61,12 +63,9 @@ export function HeroSection() {
   }
   const travel = useRef(0);
   const supervisorRef = useRef<HTMLDivElement>(null);
-  const reactionAt = useRef(-Infinity);
-  const curiosityAt = useRef(-Infinity);
-  const taps = useRef({ count: 0, since: 0 });
+  const [supervisorReaction] = useState(() => new CharacterReaction(SUPERVISOR_REACTION_MS, 1450));
   const reactionTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const [reacting, setReacting] = useState(false);
-  const [curious, setCurious] = useState(false);
+  const [feedback, setFeedback] = useState<SupervisorFeedback>('observing');
   const [awake, setAwake] = useState(!document.hidden),
     [hover, setHover] = useState<{ index: number; direct: boolean } | null>(null),
     [paused, setPaused] = useState(false);
@@ -109,30 +108,21 @@ export function HeroSection() {
   const selected = inspection?.phase === 'closing' ? null : (inspection?.index ?? null);
   const hovered = hover?.index ?? null;
   useEffect(() => {
-    setReacting(false);
-    setCurious(false);
-    reactionAt.current = -Infinity;
-    curiosityAt.current = -Infinity;
-    taps.current = { count: 0, since: 0 };
+    setFeedback('observing');
+    supervisorReaction.reset();
     return () => clearTimeout(reactionTimer.current);
-  }, [theme]);
+  }, [theme, supervisorReady, supervisorReaction]);
   const reactToSupervisor = () => {
+    if (inspection) return;
     const now = performance.now();
-    reactionAt.current = now;
-    if (now - taps.current.since > 3800) taps.current = { count: 0, since: now };
-    if (++taps.current.count === 3) {
-      taps.current = { count: 0, since: now };
-      if (!inspection && now - curiosityAt.current > 9000) {
-        curiosityAt.current = now;
-        setCurious(true);
-      }
-    }
-    setReacting(true);
+    const phase = supervisorReaction.press(now);
+    if (!phase) return;
+    setFeedback(phase === 'overload' ? 'annoyed' : phase === 'warning' ? 'curious' : 'delighted');
     clearTimeout(reactionTimer.current);
-    reactionTimer.current = setTimeout(() => {
-      setReacting(false);
-      setCurious(false);
-    }, SUPERVISOR_REACTION_MS);
+    reactionTimer.current = setTimeout(
+      () => setFeedback('observing'),
+      supervisorReaction.endsAt - now,
+    );
   };
   useEffect(() => {
     const visibility = () => setAwake(!document.hidden);
@@ -293,8 +283,8 @@ export function HeroSection() {
                       amber={theme === 'amber'}
                       anchors={anchors}
                       supervisor={supervisorRef}
-                      reactionAt={reactionAt}
-                      curiosityAt={curiosityAt}
+                      supervisorReaction={supervisorReaction}
+                      supervisorFeedback={feedback}
                       onBootMilestone={boot.complete}
                       sceneElement={sceneRef}
                       onSelect={inspect}
@@ -327,7 +317,7 @@ export function HeroSection() {
             data-testid="hero-eye"
             data-personality={theme}
             data-transitioning={switching}
-            data-reaction={curious ? 'curious' : reacting ? 'delighted' : 'observing'}
+            data-reaction={feedback}
           >
             <button
               type="button"
@@ -336,15 +326,17 @@ export function HeroSection() {
               aria-label={t.wakeCore}
             />
             <span className="supervisor-speech" aria-live="polite">
-              {curious
-                ? theme === 'blue'
-                  ? t.coreCuriousBlue
-                  : t.coreCuriousAmber
-                : reacting
+              {feedback === 'annoyed'
+                ? t.coreAnnoyed
+                : feedback === 'curious'
                   ? theme === 'blue'
-                    ? t.coreHello
-                    : t.coreAmber
-                  : ''}
+                    ? t.coreCuriousBlue
+                    : t.coreCuriousAmber
+                  : feedback === 'delighted'
+                    ? theme === 'blue'
+                      ? t.coreHello
+                      : t.coreAmber
+                    : ''}
             </span>
           </div>
         ) : staticScene ? (

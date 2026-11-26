@@ -146,6 +146,10 @@
   left: 4.5%;
   right: 4.5%;
   z-index: 4;
+  pointer-events: none;
+}
+.factory-foreground :is(button, select, label) {
+  pointer-events: auto;
 }
 .factory-control-top {
   display: flex;

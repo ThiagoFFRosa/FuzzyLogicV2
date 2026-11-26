@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef } from 'react';
 import type { RefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { AmbientScheduler } from '../../../lib/ambientEvents';
+import type { CharacterReaction } from '../../../lib/characterReaction';
+import type { SupervisorFeedback } from '../../../lib/supervisor';
 import { Group, MathUtils, Vector2, Vector3 } from 'three';
 import {
   DAMAGED_TURRET_SLOT,
@@ -15,7 +17,6 @@ import {
   SUPERVISOR_HEIGHT,
   SUPERVISOR_IDLE_MS,
   SUPERVISOR_MODES,
-  SUPERVISOR_REACTION_MS,
   chooseSupervisorTarget,
   limitSupervisorAim,
 } from '../../../lib/supervisor';
@@ -40,25 +41,26 @@ interface SupervisorProps {
   lowResolution: boolean;
   travel: RefObject<number>;
   scanUntil: RefObject<number>;
-  reactionAt: RefObject<number>;
-  curiosityAt: RefObject<number>;
+  reaction: CharacterReaction;
+  feedback: SupervisorFeedback;
   ambient: AmbientScheduler;
 }
 
 export function Supervisor(props: SupervisorProps) {
   const head = useRef<Group>(null);
   const rig = useRef({ x: 0, y: ARM.wristY as number });
-  const optic = useRef({ yaw: 0, pitch: 0, aperture: 0.32, blink: 1, energy: 1 });
+  const optic = useRef({ yaw: 0, pitch: 0, aperture: 0.32, blink: 1, energy: 1, irritation: 0 });
   const pointer = useRef({ at: -Infinity, nx: 0, ny: 0 });
   const hoverMemory = useRef({ index: null as number | null, until: 0 });
   const blinkAge = useRef(Infinity);
   const previousAmber = useRef(props.amber);
   const patrol = useRef({ amber: props.amber, index: 0, until: 0 });
-  const { gl } = useThree();
+  const { gl, invalidate } = useThree();
   const center = useMemo(() => new Vector3(), []);
   const target = useMemo(() => new Vector3(), []);
   const screen = useMemo(() => new Vector2(), []);
   const animate = props.active && !props.reduced;
+  useEffect(() => invalidate(), [props.feedback, invalidate]);
 
   useEffect(() => {
     if (!animate) return;
@@ -110,9 +112,10 @@ export function Supervisor(props: SupervisorProps) {
     const time = clock.elapsedTime;
     const dt = Math.min(delta, 0.16);
     const mode = SUPERVISOR_MODES[props.amber ? 'amber' : 'blue'];
-    const clicked = now - props.reactionAt.current < SUPERVISOR_REACTION_MS;
-    const curiosity =
-      props.selected === null && now - props.curiosityAt.current < SUPERVISOR_REACTION_MS;
+    const reaction = props.selected === null ? props.reaction.phase(now) : 'idle';
+    const clicked = reaction === 'alerted' || reaction === 'warning' || reaction === 'overload';
+    const curiosity = reaction === 'warning';
+    const irritated = reaction === 'overload';
     const event = props.ambient.current;
     const damagedX =
       event?.id === 'turret' ? beltPosition(DAMAGED_TURRET_SLOT, props.travel.current) : null;
@@ -128,7 +131,7 @@ export function Supervisor(props: SupervisorProps) {
     const reading = chooseSupervisorTarget({
       reacting: clicked,
       selected: props.selected !== null,
-      hovered: heldHover !== null,
+      hovered: heldHover !== null && !clicked,
       recentPointer: now - pointer.current.at < SUPERVISOR_IDLE_MS,
       scanning: now < props.scanUntil.current,
       environment,
@@ -191,14 +194,12 @@ export function Supervisor(props: SupervisorProps) {
       animate ? MathUtils.damp(current, next, response, dt) : next;
     const restPitch = props.reduced ? 0.018 : 0;
     const pose = optic.current;
+    pose.irritation = move(pose.irritation, irritated ? (props.reduced ? 0.7 : 1) : 0, 6);
     pose.yaw = move(pose.yaw, props.reduced ? 0 : aim.yaw, mode.follow);
     pose.pitch = move(pose.pitch, props.reduced ? restPitch : aim.pitch, mode.follow);
-    pose.aperture = move(
-      pose.aperture,
-      mode.aperture *
-        (animate && reading === 'visitor' ? (curiosity ? 1.28 : props.amber ? 0.78 : 1.24) : 1),
-      8,
-    );
+    const visitorAperture = curiosity ? 1.28 : props.amber ? 0.78 : 1.24;
+    const aperture = irritated ? 0.69 : reading === 'visitor' ? visitorAperture : 1;
+    pose.aperture = move(pose.aperture, mode.aperture * (animate ? aperture : 1), 8);
     if (previousAmber.current !== props.amber) {
       previousAmber.current = props.amber;
       blinkAge.current = 0;
@@ -209,15 +210,22 @@ export function Supervisor(props: SupervisorProps) {
     const phase = time % interval;
     const idleBlink =
       phase > interval - 0.29 ? 1 - 0.8 * Math.sin((Math.PI * (interval - phase)) / 0.29) : 1;
-    pose.blink = animate ? Math.min(lid, idleBlink) : 1;
+    const clickAge = props.reaction.age(now);
+    const clickBlink =
+      clicked && clickAge < 220 ? 1 - 0.75 * Math.sin((Math.PI * clickAge) / 220) : 1;
+    pose.blink = animate ? Math.min(lid, idleBlink, clickBlink) : 1;
     pose.energy = animate
       ? 0.97 +
         mode.pulse * 0.08 * Math.sin(time * (props.amber ? 2.2 : 1.32)) +
         (reading === 'visitor' ? 0.12 : 0)
-      : 1;
+      : clicked
+        ? 1.12
+        : 1;
 
     const wristX = animate ? aim.yaw * 0.31 + (calm ? Math.sin(time * mode.idle) * 0.075 : 0) : 0;
-    const wristY = ARM.wristY + (animate ? -aim.pitch * 0.12 + Math.sin(time * 0.78) * 0.034 : 0);
+    const wristY =
+      ARM.wristY +
+      (animate ? -aim.pitch * 0.12 + Math.sin(time * 0.78) * 0.034 + pose.irritation * 0.4 : 0);
     rig.current.x = move(rig.current.x, wristX, 2.35);
     rig.current.y = move(rig.current.y, wristY, 2.35);
     const facing = Math.atan2(camera.position.x - props.x, camera.position.z - props.z);
@@ -239,7 +247,8 @@ export function Supervisor(props: SupervisorProps) {
       head.current.rotation.z,
       animate
         ? -pose.yaw * (props.amber ? 0.035 : 0.09) +
-            (curiosity && reading === 'visitor' ? (props.amber ? 0.044 : 0.092) : 0)
+            (curiosity && reading === 'visitor' ? (props.amber ? 0.044 : 0.092) : 0) -
+            0.1 * pose.irritation
         : 0,
       4,
     );

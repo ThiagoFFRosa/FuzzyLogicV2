@@ -1,5 +1,12 @@
 # Changelog do FuzzyLogic V2
 
+## 2026-11-26 — Parte 18.5 · Reações do supervisor e das turrets
+
+- O supervisor reconhece o primeiro clique, reage à insistência e, no quinto clique da sequência, sobe com o braço, inclina a cabeça e colore a lente de vermelho antes de recuperar a pose e a personalidade do tema.
+- As turrets principais respondem a clique e toque. A reação progride de um sinal na lente a uma pane com três faíscas locais, lente apagada e cabeça inclinada. Uma trava compartilhada limita a pane a uma turret por vez, com cooldown individual.
+- O modo de movimento reduzido usa feedback na lente com a pose estável. As faíscas reutilizam geometria e material. A esteira segue operando durante as reações e a inspeção tem prioridade.
+- Validou clique, recuperação, tracking, inspeção e toque com AUTO em LOW no mobile emulado. Passaram build, lint, 34 testes unitários, 19 cenários Chromium e 5 testes de distribuição. O módulo 3D cresceu 0,8 kB gzip em relação ao patch gráfico.
+
 ## 2026-11-26 — Patch de presets gráficos
 
 - Após validação em monitor ultrawide, fixou a escala física dos presets manuais em LOW 50%, MEDIUM 75%, HIGH 100% e ULTRA 125%. AUTO mantém a adaptação por desempenho, com orçamento de pixels, e o modo 2D permanece disponível.

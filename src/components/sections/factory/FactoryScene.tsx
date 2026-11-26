@@ -23,6 +23,8 @@ import { ConveyorScanner } from './ConveyorScanner';
 import { Supervisor } from './Supervisor';
 import { useAmbientEvents } from './useAmbientEvents';
 import { SUPERVISOR_HEIGHT } from '../../../lib/supervisor';
+import type { SupervisorFeedback } from '../../../lib/supervisor';
+import type { CharacterReaction } from '../../../lib/characterReaction';
 import { AdaptiveQuality, initialFactoryQuality } from '../../../lib/factoryQuality';
 import type { FactoryQuality, QualityPreference } from '../../../lib/factoryQuality';
 import { graphicsSettings, resolveResolution, SHADOW_INTERVAL } from '../../../lib/factoryGraphics';
@@ -67,8 +69,8 @@ export interface FactorySceneProps {
   slowOnHover: boolean;
   anchors: MutableRefObject<ProjectAnchor[]>;
   supervisor: MutableRefObject<HTMLDivElement | null>;
-  reactionAt: MutableRefObject<number>;
-  curiosityAt: MutableRefObject<number>;
+  supervisorReaction: CharacterReaction;
+  supervisorFeedback: SupervisorFeedback;
   booting: boolean;
   onBootMilestone: (milestone: BootMilestone) => void;
   sceneElement: MutableRefObject<HTMLDivElement | null>;
@@ -221,6 +223,7 @@ function Production(
   const { travel, level, onCameraReady, onSceneryReady } = props;
   const speed = useRef(props.paused || props.inspection ? 0 : 1),
     turretAttention = useRef<number | null>(null),
+    turretBusyUntil = useRef(-Infinity),
     scanUntil = useRef(0);
   const { camera, size, invalidate } = useThree();
   const mobile = props.compact;
@@ -351,8 +354,8 @@ function Production(
         hovered={props.hovered}
         travel={travel}
         scanUntil={scanUntil}
-        reactionAt={props.reactionAt}
-        curiosityAt={props.curiosityAt}
+        reaction={props.supervisorReaction}
+        feedback={props.supervisorFeedback}
         lowResolution={level !== 'high'}
       />
       {PROJECT_SLOTS.map((_, index) => (
@@ -370,6 +373,8 @@ function Production(
         attention={turretAttention}
         travel={travel}
         reduced={!props.active || props.reduced}
+        interactive={props.active && !props.inspection && !studio?.orbit}
+        busyUntil={turretBusyUntil}
       />
       {(!mobile || level !== 'low') && (
         <FactoryTurret
@@ -377,6 +382,8 @@ function Production(
           station={[6.6, -1.25, 3.9]}
           travel={travel}
           reduced={props.reduced}
+          interactive={props.active && !props.inspection && !studio?.orbit}
+          busyUntil={turretBusyUntil}
         />
       )}
       <FactoryTurret
@@ -385,6 +392,8 @@ function Production(
         slot={DAMAGED_TURRET_SLOT}
         travel={travel}
         reduced={!props.active || props.reduced}
+        interactive={props.active && !props.inspection && !studio?.orbit}
+        busyUntil={turretBusyUntil}
       />
     </>
   );

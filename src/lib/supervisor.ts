@@ -1,6 +1,7 @@
 export const SUPERVISOR_HEIGHT = 6.19;
 export const SUPERVISOR_REACTION_MS = 1100;
 export const SUPERVISOR_IDLE_MS = 2550;
+export type SupervisorFeedback = 'observing' | 'delighted' | 'curious' | 'annoyed';
 export const ARM = {
   shoulderX: -0.42,
   shoulderY: 12.55,

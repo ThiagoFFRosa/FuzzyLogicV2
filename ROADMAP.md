@@ -24,6 +24,7 @@ Estados disponíveis: `PENDING`, `IN_PROGRESS`, `IMPLEMENTED`, `VALIDATED`, `BLO
 | 17 — Lossless Optimization | VALIDATED | Geometria compartilhada, instancing regional e menos trabalho de transform. No ultrawide emulado, 537 → 475 chamadas e 526 → 307 geometrias com o mesmo buffer e MSAA. Diferenças de borda, FPS e limites documentados no [relatório da Parte 17](docs/parte-17-eficiencia.md). GPU física e Safari/iOS seguem pendentes. |
 | 18 — Asset Refinement | VALIDATED | Cinco props retroindustriais com etiquetas mínimas e inspeção HTML. Aparência conferida em desktop, ultrawide e mobile, com os cinco cliques e aberturas verificados em LOW. Build, lint, 31 testes unitários, 16 cenários Chromium e 5 testes de distribuição passaram. No ultrawide emulado, 475 → 436 chamadas de desenho. GPU física segue pendente. |
 | Patch — Presets gráficos | VALIDATED | LOW 50%, MEDIUM 75%, HIGH 100%, ULTRA 125%. Buffers e sombras HIGH conferidos no Chromium em ultrawide e mobile emulados. Build, lint, 32 testes unitários, 14 cenários Chromium e 5 testes de distribuição passaram. [Configuração gráfica atual](docs/parte-16-renderizacao.md). |
+| 18.5 — Reações dos personagens | VALIDATED | Cliques e taps com escalada, pane local, recuperação e movimento reduzido. Confirmados em Chromium, incluindo mobile emulado com AUTO em LOW. Build, lint, 34 testes unitários, 19 cenários Chromium e 5 testes de distribuição passaram. |
 | 19 — Final QA & Release | PENDING | Planejada. Revisão final inclui Safari/iOS, aparelhos físicos e desempenho em GPU. |
 
 ## Limitações conhecidas

@@ -22,7 +22,11 @@ export interface SupervisorMotion {
   aperture: number;
   blink: number;
   energy: number;
+  irritation: number;
 }
+
+const IRRITATED_TINT = new Color('#fa352f');
+const IRRITATED_HOT = new Color('#ff946e');
 
 const lensVertex = `
   varying vec2 vLensUv;
@@ -89,6 +93,8 @@ export function SupervisorEye({
   const mode = SUPERVISOR_MODES[amber ? 'amber' : 'blue'];
   const tint = useMemo(() => new Color(mode.tint), [mode]);
   const hot = useMemo(() => new Color(mode.hot), [mode]);
+  const targetTint = useMemo(() => new Color(), []);
+  const targetHot = useMemo(() => new Color(), []);
   const housing = useMemo(
     () =>
       supervisorBatch([
@@ -142,8 +148,8 @@ export function SupervisorEye({
     if (pivot.current) pivot.current.rotation.set(pose.pitch, pose.yaw, 0, 'YXZ');
     const blend = animate ? 1 - Math.exp(-7.2 * Math.min(delta, 0.07)) : 1;
     const { uniforms } = lens;
-    uniforms.tint.value.lerp(tint, blend);
-    uniforms.hot.value.lerp(hot, blend);
+    uniforms.tint.value.lerp(targetTint.copy(tint).lerp(IRRITATED_TINT, pose.irritation), blend);
+    uniforms.hot.value.lerp(targetHot.copy(hot).lerp(IRRITATED_HOT, pose.irritation), blend);
     uniforms.amber.value = MathUtils.lerp(uniforms.amber.value, Number(amber), blend);
     uniforms.axis.value.set(pose.yaw * 0.71, -pose.pitch * 0.64);
     uniforms.aperture.value = pose.aperture;

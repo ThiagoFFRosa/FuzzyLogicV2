@@ -1,17 +1,26 @@
-import { useRef } from 'react';
-import type { RefObject } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useEffect, useRef, useState } from 'react';
+import type { MutableRefObject, RefObject } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import type { ThreeEvent } from '@react-three/fiber';
 import type { AmbientScheduler } from '../../../lib/ambientEvents';
 import { AdditiveBlending, Color, Group, MathUtils, Object3D, Vector3, Quaternion } from 'three';
-import { BELT_SURFACE, DOCK_OCCLUSION, beltPosition } from '../../../lib/conveyor';
+import { BELT_SURFACE, DOCK_OCCLUSION, beltPosition, onExposedBelt } from '../../../lib/conveyor';
+import { CharacterReaction } from '../../../lib/characterReaction';
 import { Structure } from './FactoryEnvironment';
 import { Surface, useEmissionTexture } from './FactoryMaterials';
-import type { MeshStandardMaterial, SpriteMaterial } from 'three';
+import type {
+  BufferGeometry,
+  MeshStandardMaterial,
+  Points,
+  PointsMaterial,
+  SpriteMaterial,
+} from 'three';
 
 export type TurretVariant = 'active' | 'sleeping' | 'damaged';
 type Point = [number, number, number];
 
 const UP = new Vector3(0, 1, 0);
+const SPARK_POSITIONS = new Float32Array([-0.17, 0.24, 0.49, 0.04, 0.36, 0.55, 0.25, 0.19, 0.52]);
 
 function Strut({ from, to, size, color }: { from: Point; to: Point; size: number; color: string }) {
   const direction = new Vector3(...to).sub(new Vector3(...from));
@@ -34,6 +43,7 @@ export function TurretModel({
   stationX = 0,
   ambient,
   phaseOffset = 0,
+  interaction,
 }: {
   variant: TurretVariant;
   animate?: boolean;
@@ -43,25 +53,28 @@ export function TurretModel({
   stationX?: number;
   ambient?: AmbientScheduler;
   phaseOffset?: number;
+  interaction?: CharacterReaction;
 }) {
   const head = useRef<Group>(null);
   const lens = useRef<MeshStandardMaterial>(null);
   const halo = useRef<SpriteMaterial>(null);
+  const sparks = useRef<Points<BufferGeometry, PointsMaterial>>(null);
   const haloTexture = useEmissionTexture();
   const cursor = useRef({ x: 0, y: 0, at: -Infinity });
   const active = variant === 'active';
   const damaged = variant === 'damaged';
   const color = damaged ? '#a7a18c' : active ? '#d3d6c6' : '#b8b7a1';
   const jointY = active ? 1.12 : damaged ? 0.8 : 0.6;
+  const idleEnergy = active ? 1.55 : damaged ? 0.42 : 0;
 
   useFrame(({ pointer, clock }, delta) => {
-    if (!animate) {
-      if (head.current) head.current.rotation.set(0, 0, 0);
-      if (damaged && lens.current) lens.current.emissiveIntensity = 0.42;
-      if (halo.current) halo.current.opacity = active ? 0.48 : 0.22;
-      return;
-    }
-    if (active && head.current) {
+    const now = interaction ? performance.now() : 0;
+    const phase = interaction?.phase(now);
+    const age = interaction?.age(now) ?? Infinity;
+    const overload = phase === 'overload';
+    let roll = 0;
+    let energy = idleEnergy;
+    if (animate && active && head.current) {
       const focus = attention?.current;
       const time = clock.elapsedTime + phaseOffset;
       const sample = cursor.current;
@@ -82,15 +95,47 @@ export function TurretModel({
         4,
         Math.min(delta, 0.16),
       );
-      head.current.rotation.z = Math.sin(time * 0.91) * 0.018;
+      roll = Math.sin(time * 0.91) * 0.018;
     }
-    if (!damaged || !lens.current) return;
-    const strength = ambient?.strength('turret') ?? 0;
-    const progress = ambient?.progress('turret') ?? 0;
-    const intensity = Math.max(0.06, 0.42 + strength * Math.cos(progress * Math.PI * 3));
-    if (head.current) head.current.rotation.z = Math.sin(progress * Math.PI * 4) * strength * 0.12;
-    lens.current.emissiveIntensity = intensity;
-    if (halo.current) halo.current.opacity = intensity * 0.52;
+    if (animate && damaged) {
+      const strength = ambient?.strength('turret') ?? 0;
+      const progress = ambient?.progress('turret') ?? 0;
+      energy = Math.max(0.06, idleEnergy + strength * Math.cos(progress * Math.PI * 3));
+      roll = Math.sin(progress * Math.PI * 4) * strength * 0.12;
+    }
+    if (phase === 'alerted' || phase === 'warning') {
+      const warning = phase === 'warning';
+      const lift = animate ? 1 - MathUtils.smoothstep(age, 120, 630) : 0.6;
+      const blink = animate && age < 185 ? 1 - 0.6 * Math.sin((Math.PI * age) / 185) : 1;
+      energy = (idleEnergy + (warning ? 0.85 : 0.42) * lift) * blink;
+      if (animate)
+        roll += Math.sin(age * (warning ? 0.027 : 0.012)) * lift * (warning ? 0.12 : 0.048);
+    }
+    const slump =
+      overload && animate
+        ? MathUtils.smoothstep(age, 250, 650) * (1 - MathUtils.smoothstep(age, 930, 1360))
+        : 0;
+    if (overload) {
+      energy = animate
+        ? (idleEnergy + 0.92) * (1 - MathUtils.smoothstep(age, 150, 320)) +
+          idleEnergy * MathUtils.smoothstep(age, 930, 1360)
+        : idleEnergy * 0.18 + 0.12;
+    }
+    if (head.current) {
+      if (!animate) head.current.rotation.y = 0;
+      head.current.rotation.z = roll - slump * 0.42;
+      head.current.position.y = -slump * 0.15;
+    }
+    if (lens.current) lens.current.emissiveIntensity = energy;
+    if (halo.current) halo.current.opacity = Math.min(0.62, energy * (active ? 0.31 : 0.52));
+    if (sparks.current) {
+      sparks.current.visible = overload && animate && age >= 80 && age < 420;
+      if (sparks.current.visible) {
+        const travel = (age - 80) / 340;
+        sparks.current.scale.setScalar(0.84 + travel * 0.52);
+        sparks.current.material.opacity = 0.82 * Math.sin(Math.PI * travel);
+      }
+    }
   });
 
   const feet: Point[] = [
@@ -158,7 +203,7 @@ export function TurretModel({
         position={[damaged ? -0.13 : 0, jointY + 0.49, 0]}
         rotation={[active ? 0 : 0.19, 0, damaged ? 0.17 : 0]}
       >
-        <group ref={head}>
+        <group ref={head} name={`turret-head-${variant}`}>
           <mesh castShadow={detailed} receiveShadow={detailed} scale={[0.47, 0.86, 0.39]}>
             <sphereGeometry args={[1, detailed ? 16 : 10, detailed ? 12 : 7]} />
             <Surface kind="plastic" color="#293c40" />
@@ -188,10 +233,29 @@ export function TurretModel({
             <meshStandardMaterial
               ref={lens}
               color={variant === 'sleeping' ? '#293c3b' : '#ed946d'}
-              emissive={variant === 'sleeping' ? '#000000' : '#f07651'}
-              emissiveIntensity={active ? 1.55 : damaged ? 0.42 : 0}
+              emissive={
+                interaction && variant === 'sleeping'
+                  ? '#c98a56'
+                  : variant === 'sleeping'
+                    ? '#000000'
+                    : '#f07651'
+              }
+              emissiveIntensity={idleEnergy}
             />
           </mesh>
+          {interaction && (
+            <points
+              ref={sparks}
+              name={`turret-sparks-${variant}`}
+              visible={false}
+              raycast={() => undefined}
+            >
+              <bufferGeometry>
+                <bufferAttribute attach="attributes-position" args={[SPARK_POSITIONS, 3]} />
+              </bufferGeometry>
+              <pointsMaterial color="#ffbc78" size={0.068} transparent depthWrite={false} />
+            </points>
+          )}
           {detailed && variant !== 'sleeping' && (
             <sprite position={[0, 0.13, 0.53]} scale={[0.47, 0.47, 1]}>
               <spriteMaterial
@@ -236,6 +300,8 @@ export function FactoryTurret({
   reduced,
   attention,
   ambient,
+  interactive,
+  busyUntil,
 }: {
   variant: TurretVariant;
   slot?: number;
@@ -244,8 +310,34 @@ export function FactoryTurret({
   reduced: boolean;
   attention?: RefObject<number | null>;
   ambient?: AmbientScheduler;
+  interactive: boolean;
+  busyUntil: MutableRefObject<number>;
 }) {
   const root = useRef<Group>(null);
+  const [reaction] = useState(() => new CharacterReaction(660, 1400));
+  const expiry = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const invalidate = useThree((state) => state.invalidate);
+  useEffect(
+    () => () => {
+      clearTimeout(expiry.current);
+      reaction.reset();
+      if (reduced) invalidate();
+    },
+    [interactive, invalidate, reaction, reduced],
+  );
+  const click = (event: ThreeEvent<MouseEvent>) => {
+    if (!root.current?.visible || (!station && !onExposedBelt(root.current.position.x))) return;
+    event.stopPropagation();
+    const now = performance.now();
+    const phase = reaction.press(now, now >= busyUntil.current);
+    if (!phase) return;
+    if (phase === 'overload') busyUntil.current = reaction.endsAt;
+    invalidate();
+    if (reduced) {
+      clearTimeout(expiry.current);
+      expiry.current = setTimeout(invalidate, reaction.endsAt - now);
+    }
+  };
   useFrame(() => {
     if (!root.current || station) return;
     const x = beltPosition(slot, travel.current);
@@ -258,6 +350,7 @@ export function FactoryTurret({
       name={`factory-turret-${variant}`}
       position={station ?? [beltPosition(slot, travel.current), BELT_SURFACE, 0]}
       scale={0.85}
+      onClick={interactive ? click : undefined}
     >
       <TurretModel
         variant={variant}
@@ -266,6 +359,7 @@ export function FactoryTurret({
         attention={attention}
         ambient={ambient}
         stationX={station?.[0]}
+        interaction={reaction}
       />
     </group>
   );
