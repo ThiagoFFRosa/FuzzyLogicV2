@@ -1,5 +1,13 @@
 # Changelog do FuzzyLogic V2
 
+## 2026-11-26 — Parte 17 · Eficiência de renderização
+
+- Compartilhou caixas com mesmas dimensões e UVs e agrupou suportes, listras e partes repetidas da parede em lotes regionais. Os lotes preservam materiais, cores e sombras.
+- Reutilizou as amostras das tangentes industriais e eliminou composições redundantes nas ripas da esteira. Adicionou teste de identidade e descarte de geometrias ao desligar e reativar o renderer.
+- Confirmou no ultrawide emulado 537 → 475 chamadas e 526 → 307 geometrias, mantendo 3440 × 1159, MSAA 4×, câmera e mapas de sombra. O FPS por software se manteve próximo da referência. A captura ultrawide final teve quatro pixels distintos, com delta máximo de 1 por canal. [Benchmark e capturas](docs/parte-17-eficiencia.md)
+- Passaram build, lint, 31 testes unitários, 37 testes Chromium e 5 testes de distribuição. A distribuição passou na repetição com espera ampliada para o primeiro frame após recriar o contexto MSAA no SwiftShader.
+- Permanece pendente a medição em GPU física. O renderer de laboratório disponibilizou contagens de recursos, sem timer GPU ou VRAM.
+
 ## 2026-11-26 — Parte 16 · Qualidade de renderização
 
 - Adicionou ULTRA com escala física de 100%, MSAA nativo, sombras aprimoradas, filtragem de até 16× e resolução dinâmica desligada por padrão. Presets anteriores permanecem disponíveis.

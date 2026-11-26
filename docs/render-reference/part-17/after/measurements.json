@@ -1,0 +1,386 @@
+[
+  {
+    "name": "desktop",
+    "theme": "blue",
+    "comparison": {
+      "pixels": 1152000,
+      "changed": 5,
+      "changedScene": 5,
+      "changedPixels": [
+        [
+          39,
+          344,
+          1
+        ],
+        [
+          607,
+          378,
+          1
+        ],
+        [
+          607,
+          454,
+          1
+        ],
+        [
+          97,
+          659,
+          3
+        ],
+        [
+          936,
+          705,
+          2
+        ]
+      ],
+      "maxChannelDelta": 3,
+      "meanAbsoluteChannelDelta": 0.000005208333333333333
+    },
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "timerQueryAvailable": false,
+    "reportedJsHeapBytes": 53500000,
+    "resolution": {
+      "viewport": [
+        1280,
+        900
+      ],
+      "css": [
+        1280,
+        820
+      ],
+      "buffer": [
+        1280,
+        820
+      ],
+      "dpr": 1,
+      "scale": "100.0",
+      "aa": "msaa",
+      "samples": 4
+    },
+    "camera": {
+      "position": [
+        10.5,
+        6.1,
+        16
+      ],
+      "quaternion": [
+        -0.10993856217710607,
+        0.14724871335019524,
+        0.01647107643909525,
+        0.9828326574773958
+      ],
+      "fov": 41.2,
+      "zoom": 1,
+      "near": 0.1,
+      "far": 100
+    },
+    "quality": "ultra",
+    "post": "off",
+    "shadowMaps": [
+      [
+        "maintenance-service-light",
+        512,
+        512
+      ],
+      [
+        "fluorescent-operational",
+        1024,
+        1024
+      ],
+      [
+        "fluorescent-unstable",
+        2048,
+        2048
+      ],
+      [
+        "fluorescent-operational",
+        2048,
+        2048
+      ],
+      [
+        "fluorescent-operational",
+        1024,
+        1024
+      ]
+    ],
+    "stableFrame": {
+      "drawCalls": 341,
+      "triangles": 49225,
+      "geometries": 251,
+      "textures": 29
+    },
+    "timing": {
+      "frames": 8,
+      "fps": 1.1776581426648722,
+      "frameP50": 841.6000000014901,
+      "frameP90": 889.3999999985099,
+      "frameP95": 889.3999999985099,
+      "completedFrameP50": 4,
+      "cpuSubmitP50": 3.7000000029802322,
+      "gpuP50": null
+    },
+    "load": {
+      "domContentLoadedMs": 169.60000000149012,
+      "transferredBytes": 6839977,
+      "decodedBytes": 6810877,
+      "requests": 97,
+      "sceneReadyMs": 13360.89999999851
+    },
+    "ablations": [
+      {
+        "name": "full",
+        "medianSubmitAndFinishMs": 3.8000000044703484,
+        "medianDisplayMs": 862.2999999970198,
+        "drawCalls": 432,
+        "triangles": 62081,
+        "geometries": 251,
+        "textures": 29
+      },
+      {
+        "name": "reuse-shadow-maps",
+        "medianSubmitAndFinishMs": 3.0999999940395355,
+        "medianDisplayMs": 845,
+        "drawCalls": 341,
+        "triangles": 49225,
+        "geometries": 251,
+        "textures": 29
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "ultrawide",
+    "theme": "blue",
+    "comparison": {
+      "pixels": 4953600,
+      "changed": 4,
+      "changedScene": 4,
+      "changedPixels": [
+        [
+          2225,
+          676,
+          1
+        ],
+        [
+          508,
+          764,
+          1
+        ],
+        [
+          886,
+          826,
+          1
+        ],
+        [
+          2383,
+          913,
+          1
+        ]
+      ],
+      "maxChannelDelta": 1,
+      "meanAbsoluteChannelDelta": 2.6916451335055985e-7
+    },
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "timerQueryAvailable": false,
+    "reportedJsHeapBytes": 109000000,
+    "resolution": {
+      "viewport": [
+        3440,
+        1440
+      ],
+      "css": [
+        3440,
+        1159
+      ],
+      "buffer": [
+        3440,
+        1159
+      ],
+      "dpr": 1,
+      "scale": "100.0",
+      "aa": "msaa",
+      "samples": 4
+    },
+    "camera": {
+      "position": [
+        11.399453069945876,
+        4.231953819787016,
+        14.192093502556908
+      ],
+      "quaternion": [
+        -0.06440628628136622,
+        0.1802525071233339,
+        0.011828961397103524,
+        0.9814381996006988
+      ],
+      "fov": 42,
+      "zoom": 0.95,
+      "near": 3.301,
+      "far": 35.002
+    },
+    "quality": "ultra",
+    "post": "off",
+    "shadowMaps": [
+      [
+        "maintenance-service-light",
+        512,
+        512
+      ],
+      [
+        "fluorescent-operational",
+        1024,
+        1024
+      ],
+      [
+        "fluorescent-unstable",
+        2048,
+        2048
+      ],
+      [
+        "fluorescent-operational",
+        2048,
+        2048
+      ],
+      [
+        "fluorescent-operational",
+        1024,
+        1024
+      ]
+    ],
+    "stableFrame": {
+      "drawCalls": 475,
+      "triangles": 54781,
+      "geometries": 307,
+      "textures": 33
+    },
+    "timing": {
+      "frames": 8,
+      "fps": 0.3213647903553616,
+      "frameP50": 3096.5,
+      "frameP90": 3156.2999999970198,
+      "frameP95": 3156.2999999970198,
+      "completedFrameP50": 5.699999995529652,
+      "cpuSubmitP50": 4.699999995529652,
+      "gpuP50": null
+    },
+    "load": {
+      "domContentLoadedMs": 121.60000000149012,
+      "transferredBytes": 6839977,
+      "decodedBytes": 6810877,
+      "requests": 97,
+      "sceneReadyMs": 28255.5
+    },
+    "ablations": [],
+    "errors": []
+  },
+  {
+    "name": "mobile",
+    "theme": "amber",
+    "comparison": {
+      "pixels": 1316640,
+      "changed": 4,
+      "changedScene": 4,
+      "changedPixels": [
+        [
+          93,
+          762,
+          1
+        ],
+        [
+          267,
+          822,
+          6
+        ],
+        [
+          267,
+          823,
+          6
+        ],
+        [
+          741,
+          965,
+          1
+        ]
+      ],
+      "maxChannelDelta": 6,
+      "meanAbsoluteChannelDelta": 0.000006582411795681938
+    },
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "timerQueryAvailable": false,
+    "reportedJsHeapBytes": 64000000,
+    "resolution": {
+      "viewport": [
+        390,
+        844
+      ],
+      "css": [
+        390,
+        320.71875
+      ],
+      "buffer": [
+        780,
+        641
+      ],
+      "dpr": 2,
+      "scale": "100.0",
+      "aa": "msaa",
+      "samples": 4
+    },
+    "camera": {
+      "position": [
+        6.5,
+        5.9,
+        17.2
+      ],
+      "quaternion": [
+        -0.07808659464887636,
+        0.16139397512469925,
+        0.012811370759698008,
+        0.9837125277787446
+      ],
+      "fov": 44,
+      "zoom": 1,
+      "near": 0.1,
+      "far": 100
+    },
+    "quality": "ultra",
+    "post": "off",
+    "shadowMaps": [
+      [
+        "fluorescent-unstable",
+        2048,
+        2048
+      ],
+      [
+        "fluorescent-operational",
+        2048,
+        2048
+      ]
+    ],
+    "stableFrame": {
+      "drawCalls": 293,
+      "triangles": 32515,
+      "geometries": 207,
+      "textures": 19
+    },
+    "timing": {
+      "frames": 8,
+      "fps": 2.6966638415933573,
+      "frameP50": 370.3999999985099,
+      "frameP90": 374.6000000014901,
+      "frameP95": 374.6000000014901,
+      "completedFrameP50": 3.100000001490116,
+      "cpuSubmitP50": 2.899999998509884,
+      "gpuP50": null
+    },
+    "load": {
+      "domContentLoadedMs": 120.5,
+      "transferredBytes": 6771338,
+      "decodedBytes": 6742538,
+      "requests": 96,
+      "sceneReadyMs": 5526.5
+    },
+    "ablations": [],
+    "errors": []
+  }
+]

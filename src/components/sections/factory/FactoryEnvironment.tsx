@@ -1,13 +1,30 @@
-import { memo, useEffect, useMemo } from 'react';
+import { Fragment, memo, useEffect, useMemo } from 'react';
 import { Color, DoubleSide, Object3D } from 'three';
 import { wallTexture } from './sceneTextures';
-import { Surface } from './FactoryMaterials';
+import { Surface, useFactoryBox } from './FactoryMaterials';
 import type { FactorySurface } from './FactoryMaterials';
 import { FactoryFloor } from './FactoryFloor';
 import { IndustrialWindows, WINDOW_CENTERS, WINDOW_WIDTH } from './IndustrialWindows';
 import { MechanicalPlates } from './MechanicalParts';
+import { StructureBatch } from './StructureBatch';
 import type { FactoryQuality } from '../../../lib/factoryQuality';
 type V3 = [number, number, number];
+const REAR_WALL_SECTORS = [0, 4, 8].map((start) => {
+  const bays = Array.from({ length: 4 }, (_, index) => start + index);
+  return {
+    columns: bays.map((index): V3 => [-30 + index * 5.4, 6.5, -7.55]),
+    edges: bays.map((index): V3 => [-30 + index * 5.4, 1, -7.46]),
+    lightPanels: bays
+      .filter((index) => index % 3 === 0)
+      .map((index): V3 => [-27.35 + index * 5.4, 2.55, -7.65]),
+    darkPanels: bays
+      .filter((index) => index % 3 !== 0)
+      .map((index): V3 => [-27.35 + index * 5.4, 2.55, -7.65]),
+    bars: bays
+      .filter((index) => index % 2 === 0)
+      .map((index): V3 => [-28 + index * 5.4, 2.2, -7.45]),
+  };
+});
 export function Structure({
   position,
   size,
@@ -23,35 +40,15 @@ export function Structure({
   kind?: FactorySurface;
   casts?: boolean;
 }) {
+  const geometry = useFactoryBox(size, kind === 'concrete');
   return (
-    <mesh position={position} rotation={rotation} receiveShadow castShadow={casts}>
-      <boxGeometry
-        args={size}
-        onUpdate={(geometry) => {
-          if (kind !== 'concrete') return;
-          const [width, height, depth] = size;
-          const faceSizes = [
-            [depth, height],
-            [depth, height],
-            [width, depth],
-            [width, depth],
-            [width, height],
-            [width, height],
-          ];
-          const uv = geometry.attributes.uv;
-          faceSizes.forEach(([horizontal, vertical], face) => {
-            for (let corner = 0; corner < 4; corner++) {
-              const index = face * 4 + corner;
-              uv.setXY(
-                index,
-                uv.getX(index) ? horizontal / 4 : 0,
-                uv.getY(index) ? vertical / 4 : 0,
-              );
-            }
-          });
-          uv.needsUpdate = true;
-        }}
-      />
+    <mesh
+      geometry={geometry}
+      position={position}
+      rotation={rotation}
+      receiveShadow
+      castShadow={casts}
+    >
       <Surface kind={kind} color={color} />
     </mesh>
   );
@@ -225,28 +222,14 @@ export const FactoryEnvironment = memo(function FactoryEnvironment({
           />
         </group>
       ))}
-      {Array.from({ length: 12 }, (_, i) => (
-        <group key={i}>
-          <Structure
-            position={[-30 + i * 5.4, 6.5, -7.55]}
-            size={[0.18, 15, 0.22]}
-            color="#293739"
-          />
-          <Structure position={[-30 + i * 5.4, 1, -7.46]} size={[5.2, 0.08, 0.1]} color="#56615c" />
-          <Structure
-            position={[-27.35 + i * 5.4, 2.55, -7.65]}
-            size={[5.18, 2.8, 0.13]}
-            color={i % 3 === 0 ? '#4b5650' : '#3d4947'}
-            kind="paint"
-          />
-          {i % 2 === 0 && (
-            <Structure
-              position={[-28 + i * 5.4, 2.2, -7.45]}
-              size={[0.12, 2.8, 0.05]}
-              color="#4d5851"
-            />
-          )}
-        </group>
+      {REAR_WALL_SECTORS.map(({ columns, edges, lightPanels, darkPanels, bars }) => (
+        <Fragment key={columns[0][0]}>
+          <StructureBatch positions={columns} size={[0.18, 15, 0.22]} color="#293739" />
+          <StructureBatch positions={edges} size={[5.2, 0.08, 0.1]} color="#56615c" />
+          <StructureBatch positions={lightPanels} size={[5.18, 2.8, 0.13]} color="#4b5650" />
+          <StructureBatch positions={darkPanels} size={[5.18, 2.8, 0.13]} color="#3d4947" />
+          <StructureBatch positions={bars} size={[0.12, 2.8, 0.05]} color="#4d5851" />
+        </Fragment>
       ))}
       <mesh position={[-5, 6.3, -7.62]}>
         <planeGeometry args={[13, 6.5]} />

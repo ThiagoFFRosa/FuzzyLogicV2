@@ -6,6 +6,8 @@ export type IndustrialPoint = [number, number, number];
 const right = new Vector3();
 const up = new Vector3();
 const forward = new Vector3();
+const before = new Vector3();
+const after = new Vector3();
 const basis = new Matrix4();
 
 export function createIndustrialPath(points: IndustrialPoint[]) {
@@ -20,9 +22,13 @@ export function loopDistance(distance: number, length: number) {
 
 // Local X spans the conveyor, local Y is its surface normal and local Z follows travel.
 export function placeOnIndustrialPath(path: CatmullRomCurve3, distance: number, object: Object3D) {
-  const t = Math.min(1, Math.max(0, distance / path.getLength()));
-  path.getPointAt(t, object.position);
-  path.getTangentAt(t, forward);
+  const fraction = Math.min(1, Math.max(0, distance / path.getLength()));
+  const t = path.getUtoTmapping(fraction, 0);
+  path.getPoint(t, object.position);
+  // Match Curve#getTangent while reusing the mapped parameter and both sample vectors.
+  path.getPoint(Math.max(0, t - 0.0001), before);
+  path.getPoint(Math.min(1, t + 0.0001), after);
+  forward.copy(after).sub(before).normalize();
   right.set(forward.z, 0, -forward.x);
   if (right.lengthSq() < 1e-8) right.set(1, 0, 0);
   else right.normalize();

@@ -78,6 +78,7 @@ export function SecondaryConveyor({
   );
   useEffect(() => () => rails.dispose(), [rails]);
   const carriers = useRef<(Group | null)[]>([]);
+  const placements = useRef<{ carrier: Group; distance: number; path: CatmullRomCurve3 }[]>([]);
   const frame = useRef(new Object3D());
   const elapsed = useRef(0);
   const cargo = compact ? route.cargo.slice(0, 1) : route.cargo;
@@ -112,6 +113,11 @@ export function SecondaryConveyor({
       const carrier = carriers.current[index];
       if (!carrier) return;
       const distance = loopDistance(start * length + elapsed.current * route.speed, length);
+      const previous = placements.current[index];
+      if (previous?.carrier === carrier && previous.path === path && previous.distance === distance)
+        return;
+      if (previous?.carrier === carrier && previous.path === path) previous.distance = distance;
+      else placements.current[index] = { carrier, distance, path };
       placeOnIndustrialPath(path, distance, carrier);
     });
   }, -1);

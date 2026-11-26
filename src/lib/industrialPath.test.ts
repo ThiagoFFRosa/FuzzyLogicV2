@@ -37,3 +37,16 @@ it('keeps transported feet on the local slope and points the model along the tan
   expect(up.dot(forward)).toBeCloseTo(0);
   expect(up.y).toBeGreaterThan(0.6);
 });
+
+it('keeps the original arc-length positions and Three tangents across route boundaries', () => {
+  const rail = path();
+  const carrier = new Object3D();
+  for (const at of [-0.1, 0, 0.001, 0.27, 0.51, 0.97, 1, 1.1]) {
+    const distance = at * rail.getLength();
+    const t = Math.max(0, Math.min(1, distance / rail.getLength()));
+    placeOnIndustrialPath(rail, distance, carrier);
+    expect(carrier.position.toArray()).toEqual(rail.getPointAt(t).toArray());
+    const forward = new Vector3(0, 0, 1).applyQuaternion(carrier.quaternion);
+    expect(forward.distanceTo(rail.getTangentAt(t))).toBeLessThan(1e-12);
+  }
+});

@@ -1,6 +1,7 @@
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { CatmullRomCurve3, Color, Object3D, TubeGeometry, Vector3 } from 'three';
-import { Surface } from './FactoryMaterials';
+import type { InstancedMesh } from 'three';
+import { Surface, useFactoryBox } from './FactoryMaterials';
 import type { FactorySurface } from './FactoryMaterials';
 
 type Coordinates = [number, number, number];
@@ -22,28 +23,32 @@ export function MechanicalPlates({
   receiveShadow?: boolean;
   castShadow?: boolean;
 }) {
+  const geometry = useFactoryBox([1, 1, 1]);
+  const update = useCallback(
+    (mesh: InstancedMesh) => {
+      const part = new Object3D();
+      const tint = new Color();
+      plates.forEach(({ at, size, color, angle }, index) => {
+        part.position.set(...at);
+        part.scale.set(...size);
+        part.rotation.z = angle ?? 0;
+        part.updateMatrix();
+        mesh.setMatrixAt(index, part.matrix);
+        mesh.setColorAt(index, tint.set(color));
+      });
+      mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+      mesh.computeBoundingSphere();
+    },
+    [plates],
+  );
   return (
     <instancedMesh
-      args={[undefined, undefined, plates.length]}
+      args={[geometry, undefined, plates.length]}
       receiveShadow={receiveShadow}
       castShadow={castShadow}
-      onUpdate={(mesh) => {
-        const part = new Object3D();
-        const tint = new Color();
-        plates.forEach(({ at, size, color, angle }, index) => {
-          part.position.set(...at);
-          part.scale.set(...size);
-          part.rotation.z = angle ?? 0;
-          part.updateMatrix();
-          mesh.setMatrixAt(index, part.matrix);
-          mesh.setColorAt(index, tint.set(color));
-        });
-        mesh.instanceMatrix.needsUpdate = true;
-        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-        mesh.computeBoundingSphere();
-      }}
+      onUpdate={update}
     >
-      <boxGeometry args={[1, 1, 1]} />
       <Surface kind={kind} color="#ffffff" />
     </instancedMesh>
   );

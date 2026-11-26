@@ -1,9 +1,10 @@
-import { createContext, useContext, useEffect, useMemo } from 'react';
+import { createContext, useContext, useEffect, useInsertionEffect, useMemo } from 'react';
 import type { ReactNode } from 'react';
 import { RepeatWrapping } from 'three';
 import type { WebGLProgramParametersWithUniforms } from 'three';
 import { canvasTexture } from './sceneTextures';
 import type { FactoryQuality } from '../../../lib/factoryQuality';
+import { FactoryBoxes } from './factoryGeometry';
 
 const profiles = {
   concrete: [0.95, 0, 0.08],
@@ -99,9 +100,16 @@ function createLibrary() {
 const MaterialContext = createContext<{
   maps: ReturnType<typeof createLibrary>;
   quality: FactoryQuality;
+  boxes: FactoryBoxes;
 } | null>(null);
 export function useEmissionTexture() {
   return useContext(MaterialContext)?.maps.halo;
+}
+
+export function useFactoryBox(size: [number, number, number], concrete = false) {
+  const library = useContext(MaterialContext);
+  if (!library) throw new Error('Factory box geometry requires FactoryMaterials.');
+  return library.boxes.get(size, concrete);
 }
 
 export function FactoryMaterials({
@@ -112,8 +120,11 @@ export function FactoryMaterials({
   quality: FactoryQuality;
 }) {
   const maps = useMemo(createLibrary, []);
-  const value = useMemo(() => ({ maps, quality }), [maps, quality]);
+  const boxes = useMemo(() => new FactoryBoxes(), []);
+  const value = useMemo(() => ({ maps, quality, boxes }), [maps, quality, boxes]);
   useEffect(() => () => Object.values(maps).forEach((map) => map.dispose()), [maps]);
+  // Like the R3F canvas, keep scene-owned resources across StrictMode effect replay.
+  useInsertionEffect(() => () => boxes.dispose(), [boxes]);
   return <MaterialContext.Provider value={value}>{children}</MaterialContext.Provider>;
 }
 

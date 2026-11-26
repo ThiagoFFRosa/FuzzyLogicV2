@@ -122,7 +122,7 @@ test('mobile commercial navigation and contact work in both languages in the pro
 test('the production 3D bundle and its delayed modules load and keep inspection across quality changes', async ({
   page,
 }) => {
-  test.setTimeout(65_000);
+  test.setTimeout(90_000);
   const errors: string[] = [];
   page.on('pageerror', (error) => errors.push(error.message));
   page.on('console', (message) => {
@@ -142,7 +142,7 @@ test('the production 3D bundle and its delayed modules load and keep inspection 
   await expect(page.locator('.factory-inspection h2')).toHaveText('SeuValet');
   await page.locator('.factory-quality select').selectOption('ultra');
   await expect(scene).toHaveAttribute('data-quality', 'ultra');
-  await expect(scene).toHaveAttribute('data-dynamic-resolution', 'false');
+  await expect(scene).toHaveAttribute('data-dynamic-resolution', 'false', { timeout: 25_000 });
   await expect
     .poll(() =>
       scene.locator('canvas').evaluate((element: HTMLCanvasElement) => {

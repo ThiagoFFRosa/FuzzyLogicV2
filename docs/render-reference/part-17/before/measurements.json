@@ -1,0 +1,759 @@
+[
+  {
+    "name": "desktop",
+    "theme": "blue",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "timerQueryAvailable": false,
+    "reportedJsHeapBytes": 53500000,
+    "resolution": {
+      "viewport": [
+        1280,
+        900
+      ],
+      "css": [
+        1280,
+        820
+      ],
+      "buffer": [
+        1280,
+        820
+      ],
+      "dpr": 1,
+      "scale": "100.0",
+      "aa": "msaa",
+      "samples": 4
+    },
+    "camera": {
+      "position": [
+        10.5,
+        6.1,
+        16
+      ],
+      "quaternion": [
+        -0.10993856217710607,
+        0.14724871335019524,
+        0.01647107643909525,
+        0.9828326574773958
+      ],
+      "fov": 41.2,
+      "zoom": 1,
+      "near": 0.1,
+      "far": 100
+    },
+    "quality": "ultra",
+    "post": "off",
+    "shadowMaps": [
+      [
+        "maintenance-service-light",
+        512,
+        512
+      ],
+      [
+        "fluorescent-operational",
+        1024,
+        1024
+      ],
+      [
+        "fluorescent-unstable",
+        2048,
+        2048
+      ],
+      [
+        "fluorescent-operational",
+        2048,
+        2048
+      ],
+      [
+        "fluorescent-operational",
+        1024,
+        1024
+      ]
+    ],
+    "stableFrame": {
+      "drawCalls": 365,
+      "triangles": 48745,
+      "geometries": 377,
+      "textures": 29
+    },
+    "timing": {
+      "frames": 8,
+      "fps": 1.1792055523729803,
+      "frameP50": 850.5,
+      "frameP90": 866.3000000044703,
+      "frameP95": 866.3000000044703,
+      "completedFrameP50": 4.600000001490116,
+      "cpuSubmitP50": 3.600000001490116
+    },
+    "load": {
+      "domContentLoadedMs": 118.10000000149012,
+      "transferredBytes": 6819536,
+      "decodedBytes": 6791036,
+      "requests": 95
+    },
+    "topLevel": [
+      {
+        "type": "Group",
+        "names": [
+          "floor-breaks"
+        ],
+        "meshes": 124,
+        "casters": 9,
+        "transparent": 7
+      },
+      {
+        "type": "Group",
+        "names": [
+          "left-maintenance-bay",
+          "maintenance-service-light",
+          "fuzzs-storage",
+          "maintenance-drums",
+          "salvage-turret",
+          "salvage-status-light",
+          "empty-turret-housing"
+        ],
+        "meshes": 25,
+        "casters": 9,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "background-infrastructure",
+          "upper-transfer",
+          "turret-model-active",
+          "turret-lens-active",
+          "turret-model-sleeping",
+          "turret-lens-sleeping",
+          "maintenance-return",
+          "turret-model-damaged",
+          "turret-lens-damaged",
+          "turret-model-sleeping"
+        ],
+        "meshes": 88,
+        "casters": 0,
+        "transparent": 3
+      },
+      {
+        "type": "Group",
+        "names": [
+          "fluorescent-operational"
+        ],
+        "meshes": 6,
+        "casters": 3,
+        "transparent": 1
+      },
+      {
+        "type": "Group",
+        "names": [
+          "fluorescent-unstable"
+        ],
+        "meshes": 6,
+        "casters": 3,
+        "transparent": 1
+      },
+      {
+        "type": "Group",
+        "names": [
+          "fluorescent-operational"
+        ],
+        "meshes": 6,
+        "casters": 3,
+        "transparent": 1
+      },
+      {
+        "type": "Group",
+        "names": [
+          "fluorescent-operational"
+        ],
+        "meshes": 6,
+        "casters": 3,
+        "transparent": 1
+      },
+      {
+        "type": "Group",
+        "names": [],
+        "meshes": 5,
+        "casters": 3,
+        "transparent": 0
+      },
+      {
+        "type": "PointLight",
+        "names": [],
+        "meshes": 0,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "PointLight",
+        "names": [],
+        "meshes": 0,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "PointLight",
+        "names": [],
+        "meshes": 0,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "Mesh",
+        "names": [],
+        "meshes": 1,
+        "casters": 0,
+        "transparent": 1
+      },
+      {
+        "type": "Mesh",
+        "names": [],
+        "meshes": 1,
+        "casters": 0,
+        "transparent": 1
+      },
+      {
+        "type": "PointLight",
+        "names": [
+          "distant-event"
+        ],
+        "meshes": 1,
+        "casters": 0,
+        "transparent": 1
+      },
+      {
+        "type": "Group",
+        "names": [
+          "conveyor-rollers"
+        ],
+        "meshes": 69,
+        "casters": 15,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "conveyor-drive",
+          "drive-output-shaft",
+          "drive-motor-shaft"
+        ],
+        "meshes": 12,
+        "casters": 1,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "scanner-wash"
+        ],
+        "meshes": 12,
+        "casters": 5,
+        "transparent": 2
+      },
+      {
+        "type": "Group",
+        "names": [
+          "infeed-dock",
+          "infeed-signal",
+          "infeed-nameplate"
+        ],
+        "meshes": 22,
+        "casters": 10,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "transfer-dock",
+          "transfer-signal",
+          "transfer-nameplate"
+        ],
+        "meshes": 22,
+        "casters": 10,
+        "transparent": 0
+      },
+      {
+        "type": "Mesh",
+        "names": [],
+        "meshes": 1,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "Mesh",
+        "names": [],
+        "meshes": 1,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [],
+        "meshes": 2,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [],
+        "meshes": 2,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [],
+        "meshes": 2,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "Mesh",
+        "names": [],
+        "meshes": 1,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "Mesh",
+        "names": [],
+        "meshes": 1,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "Mesh",
+        "names": [],
+        "meshes": 1,
+        "casters": 1,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [],
+        "meshes": 2,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [],
+        "meshes": 2,
+        "casters": 0,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "factory-supervisor",
+          "supervisor-ceiling-arm",
+          "supervisor-ceiling-rail",
+          "supervisor-upper-link",
+          "supervisor-lower-link",
+          "supervisor-wrist",
+          "supervisor-head-pivot",
+          "supervisor-head",
+          "supervisor-shell",
+          "supervisor-eye"
+        ],
+        "meshes": 12,
+        "casters": 2,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "project-crate-0",
+          "crate-identification-panel",
+          "crate-latch",
+          "crate-latch"
+        ],
+        "meshes": 19,
+        "casters": 2,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "project-crate-1",
+          "crate-identification-panel",
+          "crate-latch",
+          "crate-latch"
+        ],
+        "meshes": 19,
+        "casters": 2,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "project-crate-2",
+          "crate-identification-panel",
+          "crate-latch",
+          "crate-latch"
+        ],
+        "meshes": 20,
+        "casters": 2,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "project-crate-3",
+          "crate-identification-panel",
+          "crate-latch",
+          "crate-latch"
+        ],
+        "meshes": 22,
+        "casters": 2,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "project-crate-4",
+          "crate-identification-panel",
+          "crate-latch",
+          "crate-latch"
+        ],
+        "meshes": 19,
+        "casters": 2,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "factory-turret-active",
+          "turret-model-active",
+          "turret-lens-active"
+        ],
+        "meshes": 10,
+        "casters": 3,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "factory-turret-sleeping",
+          "turret-model-sleeping",
+          "turret-lens-sleeping"
+        ],
+        "meshes": 10,
+        "casters": 3,
+        "transparent": 0
+      },
+      {
+        "type": "Group",
+        "names": [
+          "factory-turret-damaged",
+          "turret-model-damaged",
+          "turret-lens-damaged"
+        ],
+        "meshes": 11,
+        "casters": 3,
+        "transparent": 0
+      }
+    ],
+    "ablations": [
+      {
+        "name": "full",
+        "medianSubmitAndFinishMs": 4.299999997019768,
+        "medianDisplayMs": 869.1000000014901,
+        "drawCalls": 465,
+        "triangles": 61457,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "reuse-shadow-maps",
+        "medianSubmitAndFinishMs": 3.600000001490116,
+        "medianDisplayMs": 843.6000000014901,
+        "drawCalls": 365,
+        "triangles": 48745,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "mainConveyor",
+        "medianSubmitAndFinishMs": 4.199999995529652,
+        "medianDisplayMs": 815.8999999985099,
+        "drawCalls": 451,
+        "triangles": 58905,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "secondaryConveyors",
+        "medianSubmitAndFinishMs": 4.0999999940395355,
+        "medianDisplayMs": 827.1999999955297,
+        "drawCalls": 435,
+        "triangles": 44577,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "containers",
+        "medianSubmitAndFinishMs": 3.7999999970197678,
+        "medianDisplayMs": 818.1999999955297,
+        "drawCalls": 383,
+        "triangles": 59829,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "turrets",
+        "medianSubmitAndFinishMs": 4.199999995529652,
+        "medianDisplayMs": 868,
+        "drawCalls": 426,
+        "triangles": 55949,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "supervisor",
+        "medianSubmitAndFinishMs": 4.299999997019768,
+        "medianDisplayMs": 814.1999999955297,
+        "drawCalls": 457,
+        "triangles": 56307,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "pipes",
+        "medianSubmitAndFinishMs": 3.899999998509884,
+        "medianDisplayMs": 842.6999999955297,
+        "drawCalls": 422,
+        "triangles": 51469,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "vegetation",
+        "medianSubmitAndFinishMs": 4.399999998509884,
+        "medianDisplayMs": 857.0999999940395,
+        "drawCalls": 463,
+        "triangles": 61076,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "lighting",
+        "medianSubmitAndFinishMs": 3.7000000029802322,
+        "medianDisplayMs": 637.5,
+        "drawCalls": 365,
+        "triangles": 48745,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "scanner",
+        "medianSubmitAndFinishMs": 10.199999995529652,
+        "medianDisplayMs": 894.5,
+        "drawCalls": 465,
+        "triangles": 61457,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "transparent",
+        "medianSubmitAndFinishMs": 4.600000001490116,
+        "medianDisplayMs": 859.2999999970198,
+        "drawCalls": 444,
+        "triangles": 61295,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "fog",
+        "medianSubmitAndFinishMs": 4.800000004470348,
+        "medianDisplayMs": 858.8000000044703,
+        "drawCalls": 465,
+        "triangles": 61457,
+        "geometries": 377,
+        "textures": 29
+      },
+      {
+        "name": "fill-rate-probe-50-percent",
+        "medianSubmitAndFinishMs": 4.200000002980232,
+        "medianDisplayMs": 331.1000000014901,
+        "drawCalls": 465,
+        "triangles": 61457,
+        "geometries": 377,
+        "textures": 29
+      }
+    ],
+    "errors": []
+  },
+  {
+    "name": "ultrawide",
+    "theme": "blue",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "timerQueryAvailable": false,
+    "reportedJsHeapBytes": 47400000,
+    "resolution": {
+      "viewport": [
+        3440,
+        1440
+      ],
+      "css": [
+        3440,
+        1159
+      ],
+      "buffer": [
+        3440,
+        1159
+      ],
+      "dpr": 1,
+      "scale": "100.0",
+      "aa": "msaa",
+      "samples": 4
+    },
+    "camera": {
+      "position": [
+        11.399453069945876,
+        4.231953819787016,
+        14.192093502556908
+      ],
+      "quaternion": [
+        -0.06440628628136622,
+        0.1802525071233339,
+        0.011828961397103524,
+        0.9814381996006988
+      ],
+      "fov": 42,
+      "zoom": 0.95,
+      "near": 3.301,
+      "far": 35.002
+    },
+    "quality": "ultra",
+    "post": "off",
+    "shadowMaps": [
+      [
+        "maintenance-service-light",
+        512,
+        512
+      ],
+      [
+        "fluorescent-operational",
+        1024,
+        1024
+      ],
+      [
+        "fluorescent-unstable",
+        2048,
+        2048
+      ],
+      [
+        "fluorescent-operational",
+        2048,
+        2048
+      ],
+      [
+        "fluorescent-operational",
+        1024,
+        1024
+      ]
+    ],
+    "stableFrame": {
+      "drawCalls": 537,
+      "triangles": 54733,
+      "geometries": 526,
+      "textures": 33
+    },
+    "timing": {
+      "frames": 8,
+      "fps": 0.3222183351439156,
+      "frameP50": 3106.7999999970198,
+      "frameP90": 3175.5,
+      "frameP95": 3175.5,
+      "completedFrameP50": 6.700000002980232,
+      "cpuSubmitP50": 5.5
+    },
+    "load": {
+      "domContentLoadedMs": 119,
+      "transferredBytes": 6819536,
+      "decodedBytes": 6791036,
+      "requests": 95
+    },
+    "ablations": [],
+    "errors": []
+  },
+  {
+    "name": "mobile",
+    "theme": "amber",
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "timerQueryAvailable": false,
+    "reportedJsHeapBytes": 56800000,
+    "resolution": {
+      "viewport": [
+        390,
+        844
+      ],
+      "css": [
+        390,
+        320.71875
+      ],
+      "buffer": [
+        780,
+        641
+      ],
+      "dpr": 2,
+      "scale": "100.0",
+      "aa": "msaa",
+      "samples": 4
+    },
+    "camera": {
+      "position": [
+        6.5,
+        5.9,
+        17.2
+      ],
+      "quaternion": [
+        -0.07808659464887636,
+        0.16139397512469925,
+        0.012811370759698008,
+        0.9837125277787446
+      ],
+      "fov": 44,
+      "zoom": 1,
+      "near": 0.1,
+      "far": 100
+    },
+    "quality": "ultra",
+    "post": "off",
+    "shadowMaps": [
+      [
+        "fluorescent-unstable",
+        2048,
+        2048
+      ],
+      [
+        "fluorescent-operational",
+        2048,
+        2048
+      ]
+    ],
+    "stableFrame": {
+      "drawCalls": 318,
+      "triangles": 32119,
+      "geometries": 309,
+      "textures": 19
+    },
+    "timing": {
+      "frames": 8,
+      "fps": 2.7016595908915475,
+      "frameP50": 369.59999999403954,
+      "frameP90": 381.8999999985099,
+      "frameP95": 381.8999999985099,
+      "completedFrameP50": 3.3000000044703484,
+      "cpuSubmitP50": 2.9000000059604645
+    },
+    "load": {
+      "domContentLoadedMs": 141.90000000596046,
+      "transferredBytes": 6750929,
+      "decodedBytes": 6722729,
+      "requests": 94
+    },
+    "ablations": [],
+    "errors": []
+  }
+]
