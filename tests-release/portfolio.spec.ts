@@ -140,6 +140,19 @@ test('the production 3D bundle and its delayed modules load and keep inspection 
   await page.locator('.factory-quality select').selectOption('low');
   await expect(scene).toHaveAttribute('data-quality', 'low');
   await expect(page.locator('.factory-inspection h2')).toHaveText('SeuValet');
+  await page.locator('.factory-quality select').selectOption('ultra');
+  await expect(scene).toHaveAttribute('data-quality', 'ultra');
+  await expect(scene).toHaveAttribute('data-dynamic-resolution', 'false');
+  await expect
+    .poll(() =>
+      scene.locator('canvas').evaluate((element: HTMLCanvasElement) => {
+        const context = element.getContext('webgl2');
+        const expected = Math.floor(element.getBoundingClientRect().width * devicePixelRatio);
+        return Math.abs((context?.drawingBufferWidth ?? 0) - expected);
+      }),
+    )
+    .toBeLessThanOrEqual(1);
+  await expect(page.locator('.factory-inspection h2')).toHaveText('SeuValet');
   expect(await page.evaluate(() => '__fuzzsAmbient' in window)).toBe(false);
   expect(errors).toEqual([]);
   await page.reload();

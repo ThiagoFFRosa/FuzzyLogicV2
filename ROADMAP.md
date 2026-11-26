@@ -20,7 +20,7 @@ Estados disponíveis: `PENDING`, `IN_PROGRESS`, `IMPLEMENTED`, `VALIDATED`, `BLO
 | 14 — Experiência móvel | IMPLEMENTED | Composição compacta, interação por toque e rotação validadas em emulação Chromium. Safari/iOS e celulares físicos pendentes. |
 | 15 — Camera Studio | VALIDATED | Órbita, ajustes, presets, importação/exportação, viewport simulada e exclusão do build público validados em Chromium. Desktop e Ultrawide calibrados e persistidos em `src/lib/factoryCamera.ts`. Acesso via ngrok conferido localmente pelo cabeçalho Host. |
 | 15.1 — Git e checkpoints | VALIDATED | Backup verificado por SHA-256, material público auditado e checkpoint inicial preparado com build, lint e 66 testes aprovados. A referência `main` no GitHub fornece o SHA publicado. |
-| 16 — Render Quality & Visual Fidelity | PENDING | Próxima etapa após a verificação do checkpoint 15.1. |
+| 16 — Render Quality & Visual Fidelity | VALIDATED | ULTRA nativo, MSAA/FXAA, ajustes independentes e diagnóstico. Buffer 3440 × 1159 e MSAA 4× confirmados na viewport ultrawide emulada. Medições e capturas em [Parte 16](docs/parte-16-renderizacao.md). Pendentes monitor e GPU físicos, Safari/iOS e altas taxas de atualização. |
 | 17 — Lossless Optimization | PENDING | Planejada. |
 | 18 — Asset Refinement | PENDING | Planejada. |
 | 19 — Final QA & Release | PENDING | Planejada. Revisão final inclui Safari/iOS, aparelhos físicos e desempenho em GPU. |

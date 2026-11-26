@@ -1,5 +1,12 @@
 # Changelog do FuzzyLogic V2
 
+## 2026-11-26 — Parte 16 · Qualidade de renderização
+
+- Adicionou ULTRA com escala física de 100%, MSAA nativo, sombras aprimoradas, filtragem de até 16× e resolução dinâmica desligada por padrão. Presets anteriores permanecem disponíveis.
+- Adicionou ajustes persistentes por preset para escala, antialiasing, sombras, texturas, Bloom, limite de FPS e resolução dinâmica. O diagnóstico mede o buffer, o método efetivo de AA e as estatísticas do renderer.
+- Registrou o comparativo HIGH anterior × ULTRA em ultrawide, desktop e mobile, além dos recortes OFF/FXAA/MSAA em resolução nativa. Os presets oficiais de câmera foram preservados. [Auditoria e referências](docs/parte-16-renderizacao.md)
+- Executou lint, build, 29 testes unitários, 36 cenários Chromium e 5 testes de distribuição. O cenário gráfico atingiu um timeout inicial na recriação do contexto em software e passou na repetição com espera explícita. FPS e frame time foram medidos com SwiftShader. Hardware físico e Safari/iOS seguem pendentes.
+
 ## 2026-11-25 — Subparte 15.1 · Git e checkpoints
 
 - Organizou o primeiro checkpoint com `main` e `origin` no repositório oficial. Preservou código, lockfile, documentação, testes, fontes declaradas e assets da aplicação.

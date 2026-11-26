@@ -1,6 +1,6 @@
 import { Suspense, useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useInView } from 'motion/react';
-import { ArrowDown, ArrowUpRight, Pause, Play, ScanLine } from 'lucide-react';
+import { ArrowDown, ArrowUpRight, Pause, Play, ScanLine, SlidersHorizontal } from 'lucide-react';
 import { useCoreTheme } from '../core/CoreThemeProvider';
 import { RoboticCore } from '../core/RoboticCore';
 import { profile, projects } from '../../data/projects';
@@ -12,9 +12,14 @@ import type { InspectionOrigin, ProjectAnchor } from '../../lib/inspection';
 import { browserPreference, persist } from '../../lib/behavior';
 import { QUALITY_STORAGE_KEY, parseFactoryQuality } from '../../lib/factoryQuality';
 import type { QualityPreference } from '../../lib/factoryQuality';
+import { GRAPHICS_STORAGE_KEY, parseGraphicsProfiles } from '../../lib/factoryGraphics';
+import type { GraphicsOverrides, GraphicsSettings, RenderReport } from '../../lib/factoryGraphics';
+import { FactoryGraphicsPanel, renderLimitations } from './factory/FactoryGraphicsPanel';
 import { FacilityBootScreen } from './factory/FacilityBootScreen';
 import { useFacilityBoot } from './factory/useFacilityBoot';
 import { useCameraSession } from './factory/studio/session';
+
+const defaultGraphics: GraphicsOverrides = {};
 
 export function HeroSection() {
   const { t, locale, theme, switching, compact: mobile, reduced } = useCoreTheme();
@@ -28,6 +33,32 @@ export function HeroSection() {
   const [quality, setQuality] = useState(() =>
     parseFactoryQuality(browserPreference(QUALITY_STORAGE_KEY)),
   );
+  const [graphics, setGraphics] = useState(() =>
+    parseGraphicsProfiles(browserPreference(GRAPHICS_STORAGE_KEY)),
+  );
+  const [graphicsOpen, setGraphicsOpen] = useState(false);
+  const [diagnostics, setDiagnostics] = useState(false);
+  const [renderReport, setRenderReport] = useState<RenderReport | null>(null);
+  const graphicsTrigger = useRef<HTMLButtonElement>(null);
+  const overrides = quality === 'off' ? defaultGraphics : (graphics[quality] ?? defaultGraphics);
+  const graphicsLabel = locale === 'pt' ? 'Ajustes gráficos' : 'Graphics settings';
+  const limitation = quality === 'off' ? '' : renderLimitations(locale, renderReport);
+  useEffect(() => persist(GRAPHICS_STORAGE_KEY, JSON.stringify(graphics)), [graphics]);
+  const closeGraphics = () => {
+    setGraphicsOpen(false);
+    setDiagnostics(false);
+    graphicsTrigger.current?.focus({ preventScroll: true });
+  };
+  function changeGraphics<Key extends keyof GraphicsSettings>(
+    field: Key,
+    value: GraphicsSettings[Key] | undefined,
+  ) {
+    if (quality === 'off') return;
+    const next = { ...overrides };
+    if (value === undefined) delete next[field];
+    else next[field] = value;
+    setGraphics((previous) => ({ ...previous, [quality]: next }));
+  }
   const travel = useRef(0);
   const supervisorRef = useRef<HTMLDivElement>(null);
   const reactionAt = useRef(-Infinity);
@@ -53,6 +84,9 @@ export function HeroSection() {
     if (preference === 'off') {
       boot.reset();
       setHover(null);
+      setGraphicsOpen(false);
+      setDiagnostics(false);
+      setRenderReport(null);
       document.body.style.cursor = '';
     }
     setQuality(preference);
@@ -245,6 +279,9 @@ export function HeroSection() {
                       compact={mobile}
                       booting={!supervisorReady}
                       quality={quality}
+                      graphics={overrides}
+                      diagnostics={graphicsOpen && diagnostics}
+                      onRenderReport={setRenderReport}
                       travel={travel}
                       reduced={reduced}
                       paused={paused || !!studio?.paused}
@@ -356,9 +393,24 @@ export function HeroSection() {
                 <option value="low">LOW</option>
                 <option value="medium">MEDIUM</option>
                 <option value="high">HIGH</option>
+                <option value="ultra">ULTRA</option>
                 <option value="off">2D</option>
               </select>
             </label>
+            <button
+              type="button"
+              className="factory-graphics-trigger"
+              ref={graphicsTrigger}
+              aria-label={graphicsLabel}
+              aria-expanded={graphicsOpen}
+              aria-controls={graphicsOpen ? 'factory-graphics-panel' : undefined}
+              title={limitation || graphicsLabel}
+              data-limited={!!limitation}
+              disabled={quality === 'off'}
+              onClick={() => (graphicsOpen ? closeGraphics() : setGraphicsOpen(true))}
+            >
+              <SlidersHorizontal size={15} aria-hidden="true" />
+            </button>
             <button
               className="factory-pause"
               onClick={() => setPaused((v) => !v)}
@@ -371,6 +423,19 @@ export function HeroSection() {
             </button>
           </div>
         </div>
+        {graphicsOpen && quality !== 'off' && (
+          <FactoryGraphicsPanel
+            locale={locale}
+            preset={quality}
+            overrides={overrides}
+            report={staticScene ? null : renderReport}
+            diagnostics={diagnostics}
+            setDiagnostics={setDiagnostics}
+            onEdit={changeGraphics}
+            onReset={() => setGraphics((previous) => ({ ...previous, [quality]: defaultGraphics }))}
+            onClose={closeGraphics}
+          />
+        )}
         <nav className="factory-project-controls" aria-label={t.factoryProjects}>
           {projects.map((project, index) => (
             <button

@@ -23,13 +23,19 @@ import { ConveyorScanner } from './ConveyorScanner';
 import { Supervisor } from './Supervisor';
 import { useAmbientEvents } from './useAmbientEvents';
 import { SUPERVISOR_HEIGHT } from '../../../lib/supervisor';
-import {
-  AdaptiveQuality,
-  QUALITY_PROFILES,
-  initialFactoryQuality,
-  renderPixelRatio,
-} from '../../../lib/factoryQuality';
+import { AdaptiveQuality, initialFactoryQuality } from '../../../lib/factoryQuality';
 import type { FactoryQuality, QualityPreference } from '../../../lib/factoryQuality';
+import {
+  graphicsSettings,
+  resolveResolution,
+  SHADOW_INTERVALS,
+} from '../../../lib/factoryGraphics';
+import type {
+  GraphicsOverrides,
+  GraphicsSettings,
+  RenderReport,
+} from '../../../lib/factoryGraphics';
+import { FactoryRenderer } from './FactoryRenderer';
 import { FactoryAssetError } from '../../../lib/factoryBoot';
 import type { BootMilestone } from '../../../lib/factoryBoot';
 import { cameraProfile, productionCamera } from '../../../lib/factoryCamera';
@@ -73,6 +79,9 @@ export interface FactorySceneProps {
   onSelect: (index: number) => void;
   onHover: (index: number | null) => void;
   quality: Exclude<QualityPreference, 'off'>;
+  graphics: GraphicsOverrides;
+  diagnostics: boolean;
+  onRenderReport: (report: RenderReport) => void;
   travel: MutableRefObject<number>;
   onUnavailable: (error?: unknown) => void;
   studio?: CameraSession | null;
@@ -82,10 +91,10 @@ function RenderBudget({
   level,
   preference,
   running,
+  settings,
   sceneryReady,
   inspectionId,
   onLevel,
-  onPixelRatio,
   onUnavailable,
   booting,
   compact: mobile,
@@ -93,45 +102,40 @@ function RenderBudget({
   level: FactoryQuality;
   preference: FactorySceneProps['quality'];
   running: boolean;
+  settings: GraphicsSettings;
   sceneryReady: boolean;
   inspectionId: number | undefined;
   onLevel: (level: FactoryQuality) => void;
-  onPixelRatio: (dpr: number) => void;
   onUnavailable: (error?: unknown) => void;
   booting: boolean;
   compact: boolean;
 }) {
-  const { gl, size, invalidate } = useThree();
+  const { gl, invalidate } = useThree();
   const limited = gl.capabilities.maxTextureSize <= 4096;
   const adaptive = useMemo(
     () =>
       new AdaptiveQuality(
-        mobile || limited ? 'low' : 'medium',
-        mobile || limited ? 'medium' : 'high',
+        preference === 'auto' ? (mobile || limited ? 'low' : 'medium') : 'high',
+        preference === 'auto' && (mobile || limited) ? 'medium' : 'high',
       ),
-    [mobile, limited],
+    [mobile, limited, preference],
   );
   const timing = useRef({ warmup: 0, shadow: 0, shadowFrames: 0 });
 
   useLayoutEffect(() => {
-    onPixelRatio(
-      renderPixelRatio(level, size.width, size.height, window.devicePixelRatio || 1, mobile),
-    );
-  }, [level, onPixelRatio, size.width, size.height, mobile]);
-  useLayoutEffect(() => {
-    if (preference === 'auto') onLevel(adaptive.level);
-  }, [adaptive, onLevel, preference]);
+    if (preference === 'auto' || settings.dynamic) onLevel(adaptive.level);
+  }, [adaptive, onLevel, preference, settings.dynamic]);
   useLayoutEffect(() => {
     adaptive.resetWindow();
     timing.current.warmup = 1.25;
   }, [adaptive, preference, running, sceneryReady]);
   useLayoutEffect(() => {
     gl.shadowMap.autoUpdate = false;
-    gl.shadowMap.needsUpdate = level !== 'low';
+    gl.shadowMap.needsUpdate = settings.shadows !== 'off';
     timing.current.shadow = 0;
     timing.current.shadowFrames = 0;
     invalidate();
-  }, [gl, level, running, sceneryReady, inspectionId, invalidate]);
+  }, [gl, level, settings.shadows, running, sceneryReady, inspectionId, invalidate]);
   useLayoutEffect(() => {
     const canvas = gl.domElement;
     const loseContext = (event: Event) => {
@@ -152,23 +156,28 @@ function RenderBudget({
   useFrame((_, delta) => {
     if (!running) return;
     const clock = timing.current;
-    const interval = QUALITY_PROFILES[level].shadowInterval;
+    const interval = SHADOW_INTERVALS[settings.shadows];
     if (interval) {
       clock.shadow += delta;
       clock.shadowFrames++;
-      if (clock.shadow >= interval && clock.shadowFrames >= (level === 'medium' ? 3 : 2)) {
+      if (
+        settings.shadows === 'ultra' ||
+        (clock.shadow >= interval && clock.shadowFrames >= (settings.shadows === 'medium' ? 3 : 2))
+      ) {
         gl.shadowMap.needsUpdate = true;
         clock.shadow %= interval;
         clock.shadowFrames = 0;
       }
     }
-    if (preference !== 'auto' || !sceneryReady || inspectionId !== undefined) return;
+    if ((preference !== 'auto' && !settings.dynamic) || !sceneryReady || inspectionId !== undefined)
+      return;
     if (clock.warmup > 0) {
       clock.warmup -= Math.min(delta, 0.5);
       return;
     }
-    const next = adaptive.sample(delta);
-    if (next !== level) onLevel(next);
+    const previous = adaptive.level;
+    const next = adaptive.sample(delta * Math.min(1, (settings.fps || 60) / 60));
+    if (next !== previous) onLevel(next);
   }, -4);
   return null;
 }
@@ -216,11 +225,12 @@ function FirstFactoryFrame({
 function Production(
   props: FactorySceneProps & {
     level: FactoryQuality;
+    settings: GraphicsSettings;
     onCameraReady: () => void;
     onSceneryReady: () => void;
   },
 ) {
-  const { travel, level, onCameraReady, onSceneryReady } = props;
+  const { travel, level, settings, onCameraReady, onSceneryReady } = props;
   const speed = useRef(props.paused || props.inspection ? 0 : 1),
     turretAttention = useRef<number | null>(null),
     scanUntil = useRef(0);
@@ -313,6 +323,7 @@ function Production(
             locale={props.locale}
             mobile={mobile}
             lowResolution={level !== 'high'}
+            shadows={settings.shadows}
           />
         )}
         <BackgroundInfrastructure
@@ -331,6 +342,7 @@ function Production(
         supervisorX={supervisorX}
         supervisorZ={supervisorZ}
         quality={level}
+        shadows={settings.shadows}
       />
       <Conveyor travel={travel} />
       <ConveyorDrive travel={travel} />
@@ -363,7 +375,7 @@ function Production(
           {...props}
           index={index}
           travel={travel}
-          contactShadow={level === 'low'}
+          contactShadow={level === 'low' && settings.shadows === 'off'}
           projectionRevision={projectionRevision}
         />
       ))}
@@ -396,31 +408,70 @@ export default function FactoryScene(props: FactorySceneProps) {
   const [automatic, setAutomatic] = useState(() =>
     props.compact ? 'low' : initialFactoryQuality(window.innerWidth),
   );
+  const level =
+    props.quality === 'auto' ? automatic : props.quality === 'ultra' ? 'high' : props.quality;
+  const settings = useMemo(
+    () => graphicsSettings(props.quality, level, props.graphics),
+    [props.quality, level, props.graphics],
+  );
+  return (
+    <FactoryCanvas
+      key={settings.aa === 'msaa' ? 'msaa' : 'standard'}
+      {...props}
+      level={level}
+      settings={settings}
+      resolutionTier={
+        settings.dynamic
+          ? automatic
+          : props.quality === 'auto'
+            ? props.compact
+              ? 'low'
+              : 'medium'
+            : level
+      }
+      onLevel={setAutomatic}
+    />
+  );
+}
+
+function FactoryCanvas(
+  props: FactorySceneProps & {
+    level: FactoryQuality;
+    settings: GraphicsSettings;
+    resolutionTier: FactoryQuality;
+    onLevel: (level: FactoryQuality) => void;
+  },
+) {
   const [cameraReady, setCameraReady] = useState(false);
   const [sceneryReady, setSceneryReady] = useState(false);
   const markCameraReady = useMemo(() => () => setCameraReady(true), []);
   const markSceneryReady = useMemo(() => () => setSceneryReady(true), []);
-  const level = props.quality === 'auto' ? automatic : props.quality;
+  const { level, settings, resolutionTier } = props;
   const running = props.active && !props.reduced;
-  const [pixelRatio, setPixelRatio] = useState(() =>
-    renderPixelRatio(
-      level,
-      window.innerWidth,
-      window.innerHeight,
-      window.devicePixelRatio || 1,
-      props.compact,
-    ),
+  const [pixelRatio, setPixelRatio] = useState(
+    () =>
+      resolveResolution(
+        {
+          width: window.innerWidth,
+          height: window.innerHeight,
+          device: window.devicePixelRatio || 1,
+          compact: props.compact,
+          tier: resolutionTier,
+        },
+        settings,
+        [Infinity, Infinity],
+      ).dpr,
   );
   return (
     <Canvas
       className="production-canvas"
-      data-quality={level}
+      data-quality={props.quality === 'ultra' ? 'ultra' : level}
       data-scenery-ready={sceneryReady}
       camera={INITIAL_CAMERA}
-      shadows={level === 'low' ? false : 'percentage'}
+      shadows={settings.shadows === 'off' ? false : 'percentage'}
       dpr={pixelRatio}
-      frameloop={running ? 'always' : 'demand'}
-      gl={{ antialias: false, powerPreference: 'high-performance' }}
+      frameloop={running && !settings.fps ? 'always' : 'demand'}
+      gl={{ antialias: settings.aa === 'msaa', powerPreference: 'high-performance' }}
       fallback={<div className="factory-no-webgl" />}
       onCreated={({ gl }) => {
         gl.domElement.setAttribute('aria-hidden', 'true');
@@ -442,12 +493,25 @@ export default function FactoryScene(props: FactorySceneProps) {
         level={level}
         preference={props.quality}
         running={running}
+        settings={settings}
         sceneryReady={sceneryReady}
         inspectionId={props.inspection?.id}
-        onLevel={setAutomatic}
-        onPixelRatio={setPixelRatio}
+        onLevel={props.onLevel}
         onUnavailable={props.onUnavailable}
         booting={props.booting}
+      />
+      <FactoryRenderer
+        settings={settings}
+        tier={level}
+        resolutionTier={resolutionTier}
+        compact={props.compact}
+        running={running}
+        sceneryReady={sceneryReady}
+        textureRevision={props.locale}
+        diagnostics={props.diagnostics}
+        onPixelRatio={setPixelRatio}
+        onReport={props.onRenderReport}
+        onUnavailable={props.onUnavailable}
       />
       <FirstFactoryFrame
         ready={props.booting && cameraReady && sceneryReady}

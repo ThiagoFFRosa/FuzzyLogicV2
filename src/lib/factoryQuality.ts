@@ -1,16 +1,20 @@
 export const QUALITY_STORAGE_KEY = 'fuzzs-quality';
 export const QUALITY_LEVELS = ['low', 'medium', 'high'] as const;
 export type FactoryQuality = (typeof QUALITY_LEVELS)[number];
-export type QualityPreference = FactoryQuality | 'auto' | 'off';
+export type QualityPreference = FactoryQuality | 'auto' | 'ultra' | 'off';
 
 export const QUALITY_PROFILES = {
-  low: { dpr: 0.6, maxPixels: 550_000, shadowInterval: 0 },
-  medium: { dpr: 0.9, maxPixels: 1_200_000, shadowInterval: 1 / 12 },
-  high: { dpr: 1.5, maxPixels: 2_500_000, shadowInterval: 1 / 24 },
+  low: { dpr: 0.6, maxPixels: 550_000 },
+  medium: { dpr: 0.9, maxPixels: 1_200_000 },
+  high: { dpr: 1.5, maxPixels: 2_500_000 },
 } as const;
 
 export function parseFactoryQuality(value: string | null): QualityPreference {
-  return value === 'low' || value === 'medium' || value === 'high' || value === 'off'
+  return value === 'low' ||
+    value === 'medium' ||
+    value === 'high' ||
+    value === 'ultra' ||
+    value === 'off'
     ? value
     : 'auto';
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
 import type { AmbientScheduler } from '../../../lib/ambientEvents';
 import type { Locale } from '../../../lib/behavior';
@@ -10,6 +10,8 @@ import { Surface } from './FactoryMaterials';
 import { FLUID_CIRCUITS } from './infrastructureLayout';
 import { FLOOR_LEVEL, SERVICE_BAY } from './groundLayout';
 import { canvasTexture } from './sceneTextures';
+import { shadowMapSize } from '../../../lib/factoryGraphics';
+import type { ShadowQuality } from '../../../lib/factoryGraphics';
 
 const { pallet, barrels, scrap } = SERVICE_BAY;
 const PALLET_TOP = FLOOR_LEVEL + 0.14;
@@ -51,14 +53,17 @@ const LAMP_BRACKET: Plate[] = [
   { at: [0, -0.16, -0.03], size: [0.58, 0.31, 0.45], color: '#484c3b' },
 ];
 
-function ServiceLight({ compact }: { compact: boolean }) {
+function ServiceLight({ size }: { size: number }) {
   const light = useRef<SpotLight>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const shadow = light.current?.shadow;
-    if (!compact || !shadow?.map) return;
-    shadow.map.dispose();
-    shadow.map = null;
-  }, [compact]);
+    if (!shadow) return;
+    if (shadow.map && (!size || shadow.map.width !== size)) {
+      shadow.map.dispose();
+      shadow.map = null;
+    }
+    shadow.needsUpdate = Boolean(size);
+  }, [size]);
   const target = useMemo(() => {
     const point = new Object3D();
     point.position.set(1.3, -3.38, 2.6);
@@ -82,10 +87,10 @@ function ServiceLight({ compact }: { compact: boolean }) {
         angle={0.62}
         penumbra={0.92}
         distance={7.3}
-        castShadow={!compact}
+        castShadow={!!size}
         shadow-autoUpdate={false}
         shadow-needsUpdate
-        shadow-mapSize={[256, 256]}
+        shadow-mapSize={[size || 256, size || 256]}
         shadow-camera-near={0.55}
         shadow-normalBias={0.025}
       />
@@ -368,16 +373,18 @@ export function MaintenanceBay({
   locale,
   mobile,
   lowResolution,
+  shadows,
 }: {
   ambient: AmbientScheduler;
   locale: Locale;
   mobile: boolean;
   lowResolution: boolean;
+  shadows: ShadowQuality;
 }) {
   if (mobile) return null;
   return (
     <group name="left-maintenance-bay">
-      <ServiceLight compact={lowResolution} />
+      <ServiceLight size={shadowMapSize(shadows, 'service', mobile)} />
       <StoragePallet locale={locale} />
       <FluidDrums locale={locale} />
       <BrokenTurretProp ambient={ambient} compact={lowResolution} />

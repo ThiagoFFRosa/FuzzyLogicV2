@@ -1,0 +1,341 @@
+[
+  {
+    "name": "off",
+    "viewport": [
+      3440,
+      1440
+    ],
+    "css": [
+      3440,
+      1159
+    ],
+    "cssTransform": "none",
+    "buffer": [
+      3440,
+      1159
+    ],
+    "dpr": 1,
+    "rendererDpr": 1,
+    "maxSamples": 4,
+    "maxTextureSize": 8192,
+    "maxAnisotropy": 16,
+    "contextAA": false,
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "quality": "ultra",
+    "aa": "off",
+    "sampleCount": 0,
+    "post": "off",
+    "effectiveScale": 100,
+    "dynamicResolution": false,
+    "sceneFrame": {
+      "calls": 537,
+      "triangles": 54733,
+      "geometries": 526,
+      "textures": 33,
+      "lights": 12
+    },
+    "toneMapping": 4,
+    "outputColorSpace": "srgb",
+    "fog": [
+      34,
+      69
+    ],
+    "camera": {
+      "position": [
+        11.399453069945876,
+        4.231953819787016,
+        14.192093502556908
+      ],
+      "fov": 42,
+      "zoom": 0.95,
+      "near": 3.301,
+      "far": 35.002
+    },
+    "shadows": [
+      [
+        "maintenance-service-light",
+        [
+          512,
+          512
+        ],
+        0.55,
+        7.3
+      ],
+      [
+        "fluorescent-operational",
+        [
+          1024,
+          1024
+        ],
+        1.25,
+        14
+      ],
+      [
+        "fluorescent-unstable",
+        [
+          2048,
+          2048
+        ],
+        1.25,
+        14
+      ],
+      [
+        "fluorescent-operational",
+        [
+          2048,
+          2048
+        ],
+        1.25,
+        14
+      ],
+      [
+        "fluorescent-operational",
+        [
+          1024,
+          1024
+        ],
+        1.25,
+        14
+      ]
+    ],
+    "textures": {
+      "{\"size\":[256,256],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 4,
+      "{\"size\":[2048,512],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[256,128],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[1024,512],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[320,144],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[256,120],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 3,
+      "{\"size\":[256,80],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 3,
+      "{\"size\":[64,64],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[512,128],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 3,
+      "{\"size\":[1024,768],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 5
+    },
+    "errors": []
+  },
+  {
+    "name": "fxaa",
+    "viewport": [
+      3440,
+      1440
+    ],
+    "css": [
+      3440,
+      1159
+    ],
+    "cssTransform": "none",
+    "buffer": [
+      3440,
+      1159
+    ],
+    "dpr": 1,
+    "rendererDpr": 1,
+    "maxSamples": 4,
+    "maxTextureSize": 8192,
+    "maxAnisotropy": 16,
+    "contextAA": false,
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "quality": "ultra",
+    "aa": "fxaa",
+    "sampleCount": 0,
+    "post": "off",
+    "effectiveScale": 100,
+    "dynamicResolution": false,
+    "sceneFrame": {
+      "calls": 538,
+      "triangles": 54734,
+      "geometries": 527,
+      "textures": 34,
+      "lights": 12
+    },
+    "toneMapping": 4,
+    "outputColorSpace": "srgb",
+    "fog": [
+      34,
+      69
+    ],
+    "camera": {
+      "position": [
+        11.399453069945876,
+        4.231953819787016,
+        14.192093502556908
+      ],
+      "fov": 42,
+      "zoom": 0.95,
+      "near": 3.301,
+      "far": 35.002
+    },
+    "shadows": [
+      [
+        "maintenance-service-light",
+        [
+          512,
+          512
+        ],
+        0.55,
+        7.3
+      ],
+      [
+        "fluorescent-operational",
+        [
+          1024,
+          1024
+        ],
+        1.25,
+        14
+      ],
+      [
+        "fluorescent-unstable",
+        [
+          2048,
+          2048
+        ],
+        1.25,
+        14
+      ],
+      [
+        "fluorescent-operational",
+        [
+          2048,
+          2048
+        ],
+        1.25,
+        14
+      ],
+      [
+        "fluorescent-operational",
+        [
+          1024,
+          1024
+        ],
+        1.25,
+        14
+      ]
+    ],
+    "textures": {
+      "{\"size\":[256,256],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 4,
+      "{\"size\":[2048,512],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[256,128],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[1024,512],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[320,144],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[256,120],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 3,
+      "{\"size\":[256,80],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 3,
+      "{\"size\":[64,64],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[512,128],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 3,
+      "{\"size\":[1024,768],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 5
+    },
+    "errors": []
+  },
+  {
+    "name": "msaa",
+    "viewport": [
+      3440,
+      1440
+    ],
+    "css": [
+      3440,
+      1159
+    ],
+    "cssTransform": "none",
+    "buffer": [
+      3440,
+      1159
+    ],
+    "dpr": 1,
+    "rendererDpr": 1,
+    "maxSamples": 4,
+    "maxTextureSize": 8192,
+    "maxAnisotropy": 16,
+    "contextAA": true,
+    "renderer": "ANGLE (Google, Vulkan 1.3.0 (SwiftShader Device (Subzero) (0x0000C0DE)), SwiftShader driver)",
+    "quality": "ultra",
+    "aa": "msaa",
+    "sampleCount": 4,
+    "post": "off",
+    "effectiveScale": 100,
+    "dynamicResolution": false,
+    "sceneFrame": {
+      "calls": 537,
+      "triangles": 54733,
+      "geometries": 526,
+      "textures": 33,
+      "lights": 12
+    },
+    "toneMapping": 4,
+    "outputColorSpace": "srgb",
+    "fog": [
+      34,
+      69
+    ],
+    "camera": {
+      "position": [
+        11.399453069945876,
+        4.231953819787016,
+        14.192093502556908
+      ],
+      "fov": 42,
+      "zoom": 0.95,
+      "near": 3.301,
+      "far": 35.002
+    },
+    "shadows": [
+      [
+        "maintenance-service-light",
+        [
+          512,
+          512
+        ],
+        0.55,
+        7.3
+      ],
+      [
+        "fluorescent-operational",
+        [
+          1024,
+          1024
+        ],
+        1.25,
+        14
+      ],
+      [
+        "fluorescent-unstable",
+        [
+          2048,
+          2048
+        ],
+        1.25,
+        14
+      ],
+      [
+        "fluorescent-operational",
+        [
+          2048,
+          2048
+        ],
+        1.25,
+        14
+      ],
+      [
+        "fluorescent-operational",
+        [
+          1024,
+          1024
+        ],
+        1.25,
+        14
+      ]
+    ],
+    "textures": {
+      "{\"size\":[256,256],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 4,
+      "{\"size\":[2048,512],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[256,128],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[1024,512],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[320,144],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[256,120],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 3,
+      "{\"size\":[256,80],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 3,
+      "{\"size\":[64,64],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 1,
+      "{\"size\":[512,128],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 3,
+      "{\"size\":[1024,768],\"mipmaps\":true,\"minFilter\":1008,\"magFilter\":1006,\"anisotropy\":16,\"colorSpace\":\"srgb\"}": 5
+    },
+    "errors": []
+  }
+]
